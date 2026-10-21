@@ -1,0 +1,111 @@
+import type { Metadata } from "next";
+import { notFound } from "next/navigation";
+import { Icon } from "@/components/icons";
+import { Photo } from "@/components/Photo";
+import { ButtonLink, Ph } from "@/components/ui";
+import { waLink } from "@/content/site";
+import { getDict } from "@/lib/dict";
+import { tenge, time } from "@/lib/format";
+import { getOrder } from "@/lib/orders";
+import { ShareButton } from "./ShareButton";
+
+export function generateStaticParams() {
+  return [{ token: "demo" }];
+}
+
+export async function generateMetadata({ params }: PageProps<"/[lang]/o/[token]">): Promise<Metadata> {
+  const { token } = await params;
+  const order = await getOrder(token);
+  const { t } = await getDict();
+  return { title: order ? t.meta.order(order.orderNumber) : t.meta.notFound, robots: { index: false } };
+}
+
+export default async function OrderPage({ params }: PageProps<"/[lang]/o/[token]">) {
+  const { token } = await params;
+  const order = await getOrder(token);
+  if (!order) notFound();
+  const { t } = await getDict();
+  const status = t.statuses[order.status];
+  const daysLeft = order.holdUntil ? Math.max(0, Math.ceil((Date.parse(order.holdUntil) - Date.parse(order.asOf)) / 86_400_000)) : 0;
+  const when = (iso: string) => `${t.dayMonth(iso)}, ${time(iso)}`;
+  const box = "rounded-2xl border border-line p-5";
+
+  return (
+    <div className="shell max-w-3xl py-10 md:py-14">
+      <p className="rounded-xl bg-warn-bg px-4 py-2 text-sm text-warn">{t.order.demo}</p>
+
+      <section className="mt-6 rounded-3xl bg-surface p-6 sm:p-8">
+        <p className="text-sm text-muted">{t.meta.order(order.orderNumber)}</p>
+        <h1 className="mt-1 text-3xl sm:text-4xl">{status.title}</h1>
+        <p className="mt-2">{status.next}</p>
+        {order.holdUntil && <p className="mt-4 font-semibold text-accent">{t.order.hold(order.holdUntil, daysLeft)}</p>}
+      </section>
+
+      {order.invoice && (
+        <section className={`mt-6 ${box}`}>
+          <h2 className="text-lg">{t.order.payNow}</h2>
+          <p className="mt-1 font-display text-3xl font-extrabold tabular-nums">{tenge(order.invoice.amount)}</p>
+          <p className="mt-2 text-sm">{t.order.invoice}</p>
+          <p className="mt-1 text-sm text-muted">{t.order.kaspiNote}</p>
+        </section>
+      )}
+
+      <section className={`mt-6 ${box}`}>
+        <h2 className="text-lg">{t.order.items}</h2>
+        <ul className="mt-3 divide-y divide-line text-sm">
+          {order.items.map((l) => (
+            <li key={l.productId} className="flex justify-between gap-4 py-2">
+              <span>{t.product(l.color, l.type)} · {l.stems} × {tenge(l.pricePerStem)}</span>
+              <span className="font-semibold tabular-nums">{tenge(l.sum)}</span>
+            </li>
+          ))}
+        </ul>
+        <p className="mt-2 text-xs text-muted">{t.order.priceNote}</p>
+        <dl className="mt-3 grid gap-2 border-t border-line pt-3 text-sm">
+          <div className="flex justify-between gap-4"><dt>{t.order.total}</dt><dd className="font-semibold tabular-nums">{tenge(order.total)}</dd></div>
+          <div className="flex justify-between gap-4"><dt>{t.order.paid}</dt><dd className="tabular-nums">{tenge(order.paid)}</dd></div>
+          <div className="flex justify-between gap-4"><dt>{t.order.prepay(order.prepaymentPct)}</dt><dd className="tabular-nums">{tenge(order.prepaymentDue)}</dd></div>
+          <div className="flex justify-between gap-4"><dt>{t.order.rest}</dt><dd className="tabular-nums">{tenge(order.total - order.prepaymentDue)}</dd></div>
+        </dl>
+      </section>
+
+      <section className={`mt-6 grid gap-4 sm:grid-cols-2 ${box}`}>
+        <div>
+          <h2 className="text-lg">{t.order.pickupTitle}</h2>
+          <p className="mt-2 text-sm">{t.dayMonth(order.pickup.date)}, {order.pickup.slot}</p>
+          <p className="mt-1 text-sm">{order.pickup.method === "self" ? t.calc.self : t.calc.truck}</p>
+          {order.pickup.storage && <p className="mt-1 text-sm">{t.order.storage}</p>}
+          <p className="mt-1 text-sm"><Ph>{t.ph.address}</Ph></p>
+        </div>
+        <Photo label={t.photos.map} ratio="3/2" />
+      </section>
+
+      <section className={`mt-6 ${box}`}>
+        <h2 className="text-lg">{t.order.docsTitle}</h2>
+        <ul className="mt-2 grid gap-1 text-sm">
+          <li>{t.order.docInvoice}</li>
+          <li>{t.order.docContract}: <Ph>{t.ph.contract}</Ph></li>
+        </ul>
+      </section>
+
+      <section className={`mt-6 ${box}`}>
+        <h2 className="text-lg">{t.order.historyTitle}</h2>
+        <ol className="mt-2 grid gap-2 text-sm">
+          {order.events.map((e) => (
+            <li key={e.at} className="flex justify-between gap-4">
+              <span>{t.order.events[e.type]}</span>
+              <time dateTime={e.at} className="text-muted">{when(e.at)}</time>
+            </li>
+          ))}
+        </ol>
+      </section>
+
+      <div className="mt-8 flex flex-wrap gap-3">
+        <ButtonLink href={waLink(t.wa.order(order.orderNumber))}>
+          <Icon name="chat" /> {t.order.write}
+        </ButtonLink>
+        <ShareButton label={t.order.share} copied={t.order.copied} title={t.meta.order(order.orderNumber)} />
+      </div>
+    </div>
+  );
+}

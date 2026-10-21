@@ -1,0 +1,55 @@
+@import "tailwindcss";
+
+@theme {
+  --color-surface: #f4f7f5;
+  --color-line: #d9e2dc;
+  --color-ink: #15231b;
+  --color-muted: #5e6b63;
+  --color-accent: #1e6b48;
+  --color-accent-dark: #154d34;
+  --color-mint: #e6f1ea;
+  --color-night: #15231b;
+  --color-night-soft: #1f3328;
+  --color-night-text: #cfe5d8;
+  --color-night-accent: #9fd0b5;
+  --color-warn-bg: #fff4db;
+  --color-warn: #6b4600;
+  --color-up-bg: #fbe9ec;
+  --color-up: #8e2434;
+}
+
+@theme inline {
+  --font-sans: var(--font-golos), system-ui, sans-serif;
+  --font-display: var(--font-heading);
+}
+
+:root {
+  --font-heading: var(--font-manrope), var(--font-golos), system-ui, sans-serif;
+}
+
+/* Manrope lacks ә ғ қ ң ұ — Kazakh headings would mix two fonts inside one word */
+:root:lang(kk) {
+  --font-heading: var(--font-golos), system-ui, sans-serif;
+}
+
+@utility shell {
+  margin-inline: auto;
+  max-width: 72rem;
+  padding-inline: 1rem;
+  @media (width >= 40rem) {
+    padding-inline: 1.5rem;
+  }
+}
+
+@layer base {
+  h1,
+  h2,
+  h3 {
+    font-family: var(--font-heading);
+    font-weight: 800;
+    letter-spacing: -0.01em;
+  }
+  summary {
+    cursor: pointer;
+  }
+}

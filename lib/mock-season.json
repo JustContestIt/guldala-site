@@ -1,0 +1,27 @@
+{
+  "season": {
+    "id": "2027",
+    "name": "Сезон 8 марта 2027",
+    "peakDate": "2027-03-08",
+    "pickupFrom": "2027-03-01",
+    "pickupTo": "2027-03-08",
+    "peakHoursFrom": "2027-03-05"
+  },
+  "periods": [
+    { "end": "2026-11-30", "classic": 90, "double": 120 },
+    { "end": "2027-01-15", "classic": 100, "double": 130 },
+    { "end": "2027-02-15", "classic": 115, "double": 145 },
+    { "end": "2027-03-07", "classic": 135, "double": 165 }
+  ],
+  "surcharge": { "40": 15, "60": 10, "80": 5, "100": 0 },
+  "stock": [
+    { "productId": "red-classic", "color": "red", "type": "classic", "status": "many", "maxPacks": 100 },
+    { "productId": "white-classic", "color": "white", "type": "classic", "status": "many", "maxPacks": 100 },
+    { "productId": "pink-classic", "color": "pink", "type": "classic", "status": "few", "maxPacks": 8 },
+    { "productId": "yellow-classic", "color": "yellow", "type": "classic", "status": "many", "maxPacks": 100 },
+    { "productId": "purple-classic", "color": "purple", "type": "classic", "status": "few", "maxPacks": 6 },
+    { "productId": "orange-classic", "color": "orange", "type": "classic", "status": "none", "maxPacks": 0 },
+    { "productId": "pink-double", "color": "pink", "type": "double", "status": "few", "maxPacks": 5 },
+    { "productId": "white-double", "color": "white", "type": "double", "status": "many", "maxPacks": 30 }
+  ]
+}
