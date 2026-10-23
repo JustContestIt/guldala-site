@@ -92,14 +92,14 @@ async function TulpanBody() {
             </div>
           </div>
 
-          <details className="group self-start rounded-3xl border border-line bg-white p-6 sm:p-8">
+          <details className="group min-w-0 self-start rounded-3xl border border-line bg-white p-5 sm:p-8">
             <summary className="flex min-h-11 list-none items-center justify-between gap-4 font-semibold [&::-webkit-details-marker]:hidden">
               {t.tulpan.gridTitle}
               <Icon name="chevron" className="size-5 transition-transform group-open:rotate-180" />
             </summary>
             {TULIP_TYPES.map((type) => (
               <div key={type} className="mt-6 overflow-x-auto">
-                <table className="w-full min-w-[22rem] text-right text-sm tabular-nums">
+                <table className="w-full text-right text-sm tabular-nums">
                   <caption className="mb-2 text-left font-semibold">{t.tulpan.gridCaption(t.types[type])}</caption>
                   <thead className="text-muted">
                     <tr>

@@ -63,11 +63,7 @@ async function VarietyBody({ v }: { v: Variety }) {
       </nav>
 
       <div className="mt-6 grid gap-8 lg:grid-cols-[1.3fr_1fr]">
-        <div className="grid grid-cols-2 gap-3">
-          <Photo label={t.photos.bud} ratio="4/5" swatch={COLOR_HEX[v.color]} className="col-span-2 max-sm:aspect-[4/3]!" />
-          <Photo label={t.photos.stem} ratio="4/5" className="hidden sm:block" />
-          <Photo label={t.photos.packOf30} ratio="4/5" className="hidden sm:block" />
-        </div>
+        <Photo label={t.photos.bud} ratio="4/5" swatch={COLOR_HEX[v.color]} className="self-start max-sm:aspect-[4/3]!" />
 
         <div className="self-start lg:sticky lg:top-24">
           <h1 className="text-3xl sm:text-4xl">{v.name}</h1>

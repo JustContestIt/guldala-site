@@ -7,8 +7,6 @@ import { ButtonLink, Ph, SectionTitle } from "@/components/ui";
 import { COLOR_HEX, COLOR_IDS } from "@/content/colors";
 import { CONTACTS, instagramUrl, waLink } from "@/content/site";
 import { getDict, pageMeta } from "@/lib/dict";
-import { tenge } from "@/lib/format";
-import { getSeason } from "@/lib/season";
 
 export async function generateMetadata() {
   const { t } = await getDict();
@@ -25,7 +23,6 @@ export default function Home() {
 
 async function HomeBody() {
   const { t, href } = await getDict();
-  const { season, prices } = await getSeason();
   const ext = { target: "_blank", rel: "noopener noreferrer", className: "flex min-h-8 items-center gap-2 hover:text-accent" };
 
   return (
@@ -41,24 +38,6 @@ async function HomeBody() {
             </div>
           </div>
         </div>
-      </section>
-
-      <section className="shell py-12 md:py-16">
-        <Link href={href("/tulpan")} className="group grid items-center gap-6 md:grid-cols-2">
-          <div className="relative">
-            <Photo label={t.photos.homeTulpan} ratio="4/5" />
-            <span className="absolute bottom-3 left-3 right-3 rounded-xl bg-white px-3 py-2 text-sm font-medium">
-              {season.saleOpen ? t.home.badgeOpen(tenge(prices.classic.today)) : t.home.badgeClosed}
-            </span>
-          </div>
-          <div>
-            <h2 className="text-2xl group-hover:text-accent">Guldala Tulpan</h2>
-            <p className="mt-1 text-muted">{t.home.tulpanText}</p>
-            <span className="mt-3 inline-flex items-center gap-2 font-semibold text-accent">
-              {t.home.tulpanCta} <Icon name="arrow" className="size-4" />
-            </span>
-          </div>
-        </Link>
       </section>
 
       <section className="bg-surface py-12 md:py-16">
@@ -81,24 +60,6 @@ async function HomeBody() {
             </li>
           </ul>
         </div>
-      </section>
-
-      <section className="shell py-12 md:py-16">
-        <dl className="grid grid-cols-2 gap-6 lg:grid-cols-4">
-          {(
-            [
-              ["46", t.home.facts.varieties],
-              [t.home.facts.own, t.home.facts.ownLabel],
-              [<Ph key="a">{t.ph.area}</Ph>, t.home.facts.area],
-              [<Ph key="s">{t.ph.seasons}</Ph>, t.home.facts.seasons],
-            ] as const
-          ).map(([value, label]) => (
-            <div key={label} className="flex flex-col">
-              <dt className="text-sm text-muted">{label}</dt>
-              <dd className="order-first font-display text-4xl font-extrabold">{value}</dd>
-            </div>
-          ))}
-        </dl>
       </section>
 
       <section className="shell pb-12 md:pb-16">
