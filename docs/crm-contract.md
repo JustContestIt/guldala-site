@@ -103,6 +103,8 @@
 
 ## POST /public/leads, POST /public/designer-price
 
+Формы лендинга Botanica (`botanica.<домен>`).
+
 ```ts
 { segment: "private" | "office" | "horeca"; phone: string; company?: string; message: string }
 { company: string; phone: string }

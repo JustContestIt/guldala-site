@@ -28,7 +28,9 @@ docker compose up -d --build  # сайт на :3000
 | Путь | Что |
 |---|---|
 | `app/[lang]/` | Все страницы. `lang` = `ru` или `kz` |
-| `proxy.ts` | Русские адреса без префикса (`/tulpan`) отдаются из `/ru/tulpan`; казахские — `/kz/tulpan` |
+| `proxy.ts` | Русские адреса без префикса (`/tulpan`) отдаются из `/ru/tulpan`; казахские — `/kz/tulpan`. Хост `botanica.*` — лендинг Botanica (`/rasteniya` → `/ru/botanica/rasteniya`); `/botanica` на основном домене — редирект на поддомен |
+| `app/[lang]/(tulpan)/` | Страницы тюльпанов со своей шапкой и подвалом |
+| `app/[lang]/botanica/` | Лендинг Botanica: свой макет (шапка, меню, подвал, canonical, карточка превью), формы заявок → CRM |
 | `content/dict/ru.ts`, `kz.ts` | Все тексты сайта. `kz` типизирован по `ru` — пропущенный ключ не соберётся |
 | `content/` | Цвета, 31 сорт сезона 2027 с описаниями (`varieties.ts`), контакты. `PHOTO-BRIEF.md` — ТЗ Татьяне |
 | `components/Picks.tsx` | Заказ в браузере (localStorage): «В заказ» / «− N +» на сортах, плашка «в заказе», очистка после отправки |
@@ -45,7 +47,7 @@ docker compose up -d --build  # сайт на :3000
 
 ## Страницы
 
-`/` · `/tulpan` · `/tulpan/sorta` · `/tulpan/sorta/[slug]` · `/tulpan/zakaz` · `/o/[token]` · `/o-nas` · `/kontakty` — и всё то же под `/kz`. Botanica отложена: её страницы — в ветке `botanica`.
+`/` · `/tulpan` · `/tulpan/sorta` · `/tulpan/sorta/[slug]` · `/tulpan/zakaz` · `/o/[token]` · `/o-nas` · `/kontakty` — и всё то же под `/kz`. Botanica — отдельно на `botanica.<домен>`: `/` · `/rasteniya` · `/proekty` и `/kz/…`.
 
 ## Допущения (бриф §14, пока нет ответа)
 
@@ -64,7 +66,7 @@ docker compose up -d --build  # сайт на :3000
 - [x] Главная и `/tulpan`
 - [x] Каталог сортов (фильтры в URL) и страница сорта
 - [x] Калькулятор — тесты расчёта, серверная перепроверка (с этапа C — оформление)
-- [x] Botanica: витрина, растения, проекты, формы — отложена 23.10.2026, ветка `botanica`
+- [x] Botanica: витрина, растения, проекты, формы — с 23.10.2026 отдельный лендинг на поддомене `botanica.`
 - [x] Страница заказа `/o/<token>`, о нас, контакты
 - [x] Казахская версия всех страниц, переключатель RU/KZ
 - [x] SEO: metadata, canonical + hreflang, OG-картинки, sitemap.xml, robots.txt
@@ -72,4 +74,4 @@ docker compose up -d --build  # сайт на :3000
 ## Дальше (ревизия брифа 23.10.2026, `../PLAN.md`, один этап на сессию)
 
 - [x] Этап B (23.10.2026): данные из CRM вместо моков (`lib/season.ts`, `lib/orders.ts`, `app/[lang]/tulpan/zakaz/actions.ts`), кэш ≤ 60 с, `?c=TOKEN` с предзаполнением, лиды Botanica в CRM, Telegram убран
-- [x] Этап C (23.10.2026): заказ собирается в каталоге по сортам («В заказ» / «− N +», плашка «в заказе»), `/tulpan/zakaz` — оформление без фото, 31 сорт с описаниями RU/KZ, ссылка из CRM в каталог с cookie, `SITE_URL` из сборки, Botanica отложена в ветку
+- [x] Этап C (23.10.2026): заказ собирается в каталоге по сортам («В заказ» / «− N +», плашка «в заказе»), `/tulpan/zakaz` — оформление без фото, 31 сорт с описаниями RU/KZ, ссылка из CRM в каталог с cookie, `SITE_URL` из сборки, Botanica — отдельный лендинг на поддомене

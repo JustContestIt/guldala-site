@@ -1,7 +1,5 @@
 import type { Metadata } from "next";
 import { Golos_Text, Manrope } from "next/font/google";
-import { Footer } from "@/components/Footer";
-import { Header } from "@/components/Header";
 import { SITE_URL } from "@/content/site";
 import { getDict } from "@/lib/dict";
 import { LANGS } from "@/lib/i18n";
@@ -30,11 +28,7 @@ export default async function RootLayout({ children }: LayoutProps<"/[lang]">) {
   const { t } = await getDict();
   return (
     <html lang={t.htmlLang} className={`${manrope.variable} ${golos.variable}`}>
-      <body className="bg-white font-sans text-ink antialiased">
-        <Header />
-        <main>{children}</main>
-        <Footer />
-      </body>
+      <body className="bg-white font-sans text-ink antialiased">{children}</body>
     </html>
   );
 }
