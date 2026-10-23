@@ -54,11 +54,18 @@ function subscribe(f: () => void) {
 
 export const usePicks = () => useSyncExternalStore(subscribe, read, () => EMPTY);
 
-export function setPick(slug: string, packs: number) {
+function setPick(slug: string, packs: number) {
   const next = { ...read() };
   if (packs > 0) next[slug] = packs;
   else delete next[slug];
   save(next);
+}
+
+// ± one pack from the stored value, not the rendered one: fast double taps must all count; a color's stock caps its varieties
+function bump(slug: string, delta: number, group: string[], max: number) {
+  const p = read();
+  if (delta > 0 && group.reduce((a, s) => a + (p[s] ?? 0), 0) >= max) return;
+  setPick(slug, (p[slug] ?? 0) + delta);
 }
 
 // On the order page right after sending: the basket is now an order
@@ -78,7 +85,7 @@ export function PickStepper({ slug, group, max, label, t }: { slug: string; grou
     return (
       <button
         type="button"
-        onClick={() => setPick(slug, 1)}
+        onClick={() => bump(slug, 1, group, max)}
         disabled={full}
         className="inline-flex min-h-11 w-full items-center justify-center rounded-xl bg-accent px-3 text-sm font-semibold text-white hover:bg-accent-dark disabled:opacity-40"
       >
@@ -88,13 +95,13 @@ export function PickStepper({ slug, group, max, label, t }: { slug: string; grou
   return (
     <div>
       <div className="flex items-center justify-between rounded-xl border border-accent">
-        <button type="button" onClick={() => setPick(slug, n - 1)} aria-label={fmt(t.less, { label })} className="grid size-11 place-items-center text-lg">
+        <button type="button" onClick={() => bump(slug, -1, group, max)} aria-label={fmt(t.less, { label })} className="grid size-11 place-items-center text-lg">
           −
         </button>
         <output aria-live="polite" className="text-sm font-semibold tabular-nums">
           {fmt(t.packs, { n })}
         </output>
-        <button type="button" onClick={() => setPick(slug, n + 1)} disabled={full} aria-label={fmt(t.more, { label })} className="grid size-11 place-items-center text-lg disabled:opacity-30">
+        <button type="button" onClick={() => bump(slug, 1, group, max)} disabled={full} aria-label={fmt(t.more, { label })} className="grid size-11 place-items-center text-lg disabled:opacity-30">
           +
         </button>
       </div>
