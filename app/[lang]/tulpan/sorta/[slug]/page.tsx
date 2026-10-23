@@ -4,11 +4,12 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Icon } from "@/components/icons";
 import { Photo } from "@/components/Photo";
+import { OrderBar, PickStepper } from "@/components/Picks";
 import { ButtonLink, ColorDot, Ph, StockBadge } from "@/components/ui";
 import { VarietyCard } from "@/components/VarietyCard";
 import { COLOR_HEX } from "@/content/colors";
 import { waLink } from "@/content/site";
-import { VARIETIES, type Variety } from "@/content/varieties";
+import { groupOf, VARIETIES, type Variety } from "@/content/varieties";
 import { getDict, pageMeta } from "@/lib/dict";
 import { tenge } from "@/lib/format";
 import { getSeason } from "@/lib/season";
@@ -37,9 +38,10 @@ export default async function VarietyPage({ params }: PageProps<"/[lang]/tulpan/
 }
 
 async function VarietyBody({ v }: { v: Variety }) {
-  const { t, href } = await getDict();
-  const { stock, prices } = await getSeason();
-  const statusOf = (x: Variety) => stock.find((s) => s.color === x.color && s.type === x.type)?.status ?? "none";
+  const { t, href, lang } = await getDict();
+  const { asOf, priceGrid, stock, prices } = await getSeason();
+  const line = (x: Variety) => stock.find((s) => s.color === x.color && s.type === x.type);
+  const statusOf = (x: Variety) => line(x)?.status ?? "none";
   const status = statusOf(v);
   const label = t.product(v.color, v.type);
   const similar = VARIETIES.filter((x) => x.slug !== v.slug && x.color === v.color)
@@ -48,12 +50,12 @@ async function VarietyBody({ v }: { v: Variety }) {
   const rows: [string, ReactNode][] = [
     [t.variety.color, t.colors[v.color]],
     [t.variety.type, t.types[v.type]],
-    [t.variety.stem, v.stemLength ? t.variety.stemValue(v.stemLength) : <Ph>{t.ph.stem}</Ph>],
+    [t.variety.stem, v.height ? t.variety.stemValue(v.height) : <Ph>{t.ph.stem}</Ph>],
     [t.variety.vase, v.vaseLife ? t.variety.vaseValue(v.vaseLife) : <Ph>{t.ph.vase}</Ph>],
   ];
 
   return (
-    <div className="shell py-8 md:py-12">
+    <div className="shell pt-8 pb-28 md:pt-12">
       <nav aria-label={t.nav.crumbs} className="text-sm text-muted">
         <Link href={href("/tulpan/sorta")} className="hover:text-accent">{t.variety.crumbs}</Link>
         {" / "}
@@ -62,9 +64,9 @@ async function VarietyBody({ v }: { v: Variety }) {
 
       <div className="mt-6 grid gap-8 lg:grid-cols-[1.3fr_1fr]">
         <div className="grid grid-cols-2 gap-3">
-          <Photo label={t.photos.bud} ratio="4/5" swatch={COLOR_HEX[v.color]} className="col-span-2" />
-          <Photo label={t.photos.stem} ratio="4/5" />
-          <Photo label={t.photos.packOf30} ratio="4/5" />
+          <Photo label={t.photos.bud} ratio="4/5" swatch={COLOR_HEX[v.color]} className="col-span-2 max-sm:aspect-[4/3]!" />
+          <Photo label={t.photos.stem} ratio="4/5" className="hidden sm:block" />
+          <Photo label={t.photos.packOf30} ratio="4/5" className="hidden sm:block" />
         </div>
 
         <div className="self-start lg:sticky lg:top-24">
@@ -76,6 +78,14 @@ async function VarietyBody({ v }: { v: Variety }) {
             <StockBadge status={status} t={t.stock} />
             <span className="text-sm">{t.variety.priceToday(tenge(prices[v.type].today))}</span>
           </div>
+
+          <p className="mt-4">{v.description[lang]}</p>
+
+          {status !== "none" && (
+            <div className="mt-6 max-w-xs">
+              <PickStepper slug={v.slug} group={groupOf(v)} max={line(v)?.maxPacks ?? 0} label={v.name} t={t.calc} />
+            </div>
+          )}
 
           <dl className="mt-6 grid gap-2 text-sm">
             {rows.map(([k, val]) => (
@@ -89,9 +99,6 @@ async function VarietyBody({ v }: { v: Variety }) {
           <p className="mt-6 rounded-xl bg-surface p-4 text-sm text-muted">{t.variety.note}</p>
 
           <div className="mt-6 flex flex-wrap gap-3">
-            {status !== "none" && (
-              <ButtonLink href={href(`/tulpan/zakaz?product=${v.color}-${v.type}`)}>{t.variety.order(label)}</ButtonLink>
-            )}
             <ButtonLink href={waLink(t.wa.variety(label))} variant="secondary">
               <Icon name="chat" /> {t.variety.ask}
             </ButtonLink>
@@ -105,12 +112,13 @@ async function VarietyBody({ v }: { v: Variety }) {
           <ul className="mt-6 grid grid-cols-2 gap-x-4 gap-y-8 md:grid-cols-4">
             {similar.map((x) => (
               <li key={x.slug}>
-                <VarietyCard v={x} status={statusOf(x)} />
+                <VarietyCard v={x} status={statusOf(x)} max={line(x)?.maxPacks ?? 0} />
               </li>
             ))}
           </ul>
         </section>
       )}
+      <OrderBar data={{ asOf, priceGrid, stock }} href={href("/tulpan/zakaz")} t={t.calc.bar} />
     </div>
   );
 }

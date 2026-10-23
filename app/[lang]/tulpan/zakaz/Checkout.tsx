@@ -1,14 +1,17 @@
 "use client";
 
+import Link from "next/link";
 import { startTransition, useActionState, useState, type FormEvent } from "react";
 import { Icon } from "@/components/icons";
-import { ColorDot, Field, inputCls, StockBadge } from "@/components/ui";
+import { PickStepper, usePicks } from "@/components/Picks";
+import { ColorDot, Field, inputCls } from "@/components/ui";
 import { COLOR_HEX } from "@/content/colors";
 import type { Dict } from "@/content/dict/ru";
 import { waLink } from "@/content/site";
+import { groupOf, VARIETIES } from "@/content/varieties";
 import { tenge } from "@/lib/format";
 import { fmt, type Lang } from "@/lib/i18n";
-import { PACK_SIZE, quote, serializeItems, slotsFor } from "@/lib/order";
+import { linesFromPicks, PACK_SIZE, quote, serializePicks, slotsFor } from "@/lib/order";
 import { almatyDay, PREPAYMENTS, pricePerStem } from "@/lib/pricing";
 import type { PrepaymentPct, SeasonCurrent } from "@/lib/season";
 import { submitOrder } from "./actions";
@@ -17,18 +20,17 @@ type Props = {
   lang: Lang;
   data: Pick<SeasonCurrent, "season" | "asOf" | "priceGrid" | "stock">;
   t: Dict["calc"];
-  stockT: Dict["stock"];
-  labels: Record<string, string>;
-  initial?: string;
+  labels: Record<string, string>; // productId → "Красные махровые"
+  catalogHref: string;
   // from ?c=TOKEN (a WhatsApp link): contacts the CRM already knows
   client?: { company: string; name: string; phone: string };
   prefillToken?: string;
 };
 
-export function Calculator({ lang, data, t, stockT, labels, initial, client, prefillToken }: Props) {
-  const max = (id: string) => data.stock.find((s) => s.productId === id)?.maxPacks ?? 0;
+// The order comes from the catalog (variety picks); here it is checked, priced and sent
+export function Checkout({ lang, data, t, labels, catalogHref, client, prefillToken }: Props) {
+  const picks = usePicks();
   const [pct, setPct] = useState<PrepaymentPct>(100);
-  const [packs, setPacks] = useState<Record<string, number>>(() => (initial ? { [initial]: Math.min(4, max(initial)) } : {}));
   const [date, setDate] = useState("");
   const [slot, setSlot] = useState("");
   const [legal, setLegal] = useState<"ip" | "too">("ip");
@@ -41,12 +43,12 @@ export function Calculator({ lang, data, t, stockT, labels, initial, client, pre
   };
 
   const day = almatyDay(new Date(data.asOf));
-  const lines = Object.entries(packs).map(([productId, n]) => ({ productId, packs: n }));
-  const q = quote(data, lines, pct, day);
+  const lineOf = (v: (typeof VARIETIES)[number]) => data.stock.find((s) => s.color === v.color && s.type === v.type);
+  const chosen = VARIETIES.filter((v) => picks[v.slug] && lineOf(v));
+  const q = quote(data, linesFromPicks(picks, chosen, data.stock).lines, pct, day);
   const slots = slotsFor(data.season, date);
   const price = (type: "classic" | "double") => pricePerStem(data.priceGrid, type, pct, day);
   const blocked = pending || !q.lines.length || q.missingStems > 0 || q.closed || q.overStock.length > 0;
-  const set = (id: string, n: number) => setPacks((p) => ({ ...p, [id]: Math.max(0, Math.min(n, max(id))) }));
   const classic = price("classic");
   const double = price("double");
 
@@ -54,11 +56,54 @@ export function Calculator({ lang, data, t, stockT, labels, initial, client, pre
     <form onSubmit={submit} className="mt-8 grid gap-8 lg:grid-cols-[1fr_22rem] lg:items-start">
       <input type="hidden" name="lang" value={lang} />
       <input type="hidden" name="pct" value={pct} />
-      <input type="hidden" name="items" value={serializeItems(q.lines)} />
+      <input type="hidden" name="picks" value={serializePicks(Object.fromEntries(chosen.map((v) => [v.slug, picks[v.slug]])))} />
       {prefillToken && <input type="hidden" name="c" value={prefillToken} />}
       <input type="text" name="website" tabIndex={-1} autoComplete="off" aria-hidden="true" className="hidden" />
 
       <div className="grid gap-8">
+
+        <section className="rounded-2xl border border-line p-5" aria-labelledby="items-title">
+          <h2 id="items-title" className="text-lg">{t.itemsTitle}</h2>
+          {chosen.length ? (
+            <>
+              <ul className="mt-2 divide-y divide-line">
+                {chosen.map((v) => {
+                  const s = lineOf(v)!;
+                  const stems = picks[v.slug] * PACK_SIZE;
+                  const p = price(v.type);
+                  return (
+                    <li key={v.slug} className="grid grid-cols-[1fr_8.5rem] items-center gap-3 py-3">
+                      <div className="min-w-0">
+                        <p className="font-semibold">{v.name}</p>
+                        <p className="mt-0.5 flex items-center gap-2 text-sm text-muted">
+                          <ColorDot hex={COLOR_HEX[v.color]} /> {labels[s.productId]}
+                        </p>
+                        {p !== null && (
+                          <p className="mt-0.5 text-sm tabular-nums">
+                            {fmt(t.stems, { n: stems })} × {tenge(p)} = {tenge(stems * p)}
+                          </p>
+                        )}
+                      </div>
+                      <PickStepper slug={v.slug} group={groupOf(v)} max={s.maxPacks ?? 0} label={v.name} t={t} />
+                    </li>
+                  );
+                })}
+              </ul>
+              <p className="mt-2 text-xs text-muted">{t.packHint}</p>
+              <Link href={catalogHref} className="mt-3 inline-flex min-h-11 items-center text-sm font-semibold text-accent">
+                + {t.addMore}
+              </Link>
+            </>
+          ) : (
+            <div className="mt-3 rounded-xl bg-surface p-5 text-center">
+              <p className="text-muted">{t.empty}</p>
+              <Link href={catalogHref} className="mt-3 inline-flex min-h-11 items-center justify-center rounded-xl bg-accent px-5 text-sm font-semibold text-white hover:bg-accent-dark">
+                {t.toCatalog}
+              </Link>
+            </div>
+          )}
+        </section>
+
         <fieldset className="rounded-2xl border border-line p-5">
           <legend className="px-1 text-lg font-semibold">{t.prepayTitle}</legend>
           <div className="mt-2 grid grid-cols-4 gap-2">
@@ -78,53 +123,6 @@ export function Calculator({ lang, data, t, stockT, labels, initial, client, pre
             <p className="mt-3 text-sm text-muted">{fmt(t.prepayHint, { pct, classic: tenge(classic), double: tenge(double) })}</p>
           )}
         </fieldset>
-
-        <section className="rounded-2xl border border-line p-5" aria-labelledby="items-title">
-          <h2 id="items-title" className="text-lg">{t.itemsTitle}</h2>
-          <p className="text-sm text-muted">{t.packHint}</p>
-          <ul className="mt-3 divide-y divide-line">
-            {data.stock.map((s) => {
-              const n = packs[s.productId] ?? 0;
-              const p = price(s.type);
-              const label = labels[s.productId];
-              return (
-                <li key={s.productId} className="flex items-center gap-3 py-3">
-                  <span className="grid size-12 shrink-0 place-items-center rounded-xl bg-mint">
-                    <ColorDot hex={COLOR_HEX[s.color]} className="size-6" />
-                  </span>
-                  <div className="min-w-0 flex-1">
-                    <p className="font-semibold">{label}</p>
-                    <p className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-muted">
-                      <StockBadge status={s.status} t={stockT} />
-                      {p !== null && <span>{tenge(p)}{t.perStem}</span>}
-                    </p>
-                    {n > 0 && p !== null && (
-                      <p className="mt-1 text-sm">
-                        {fmt(t.stems, { n: n * PACK_SIZE })} · {tenge(n * PACK_SIZE * p)}
-                        {n >= max(s.productId) && <span className="text-warn"> · {t.max}</span>}
-                      </p>
-                    )}
-                  </div>
-                  {s.status === "none" ? (
-                    <span className="text-sm text-muted">{t.none}</span>
-                  ) : (
-                    <div className="flex items-center rounded-xl border border-line">
-                      <button type="button" onClick={() => set(s.productId, n - 1)} disabled={n === 0} aria-label={fmt(t.less, { label })} className="grid size-11 place-items-center disabled:opacity-30">
-                        −
-                      </button>
-                      <output aria-label={fmt(t.packsOf, { label })} aria-live="polite" className="w-8 text-center font-semibold tabular-nums">
-                        {n}
-                      </output>
-                      <button type="button" onClick={() => set(s.productId, n + 1)} disabled={n >= max(s.productId)} aria-label={fmt(t.more, { label })} className="grid size-11 place-items-center disabled:opacity-30">
-                        +
-                      </button>
-                    </div>
-                  )}
-                </li>
-              );
-            })}
-          </ul>
-        </section>
 
         <fieldset className="grid gap-4 rounded-2xl border border-line p-5 sm:grid-cols-2">
           <legend className="px-1 text-lg font-semibold">{t.pickupTitle}</legend>

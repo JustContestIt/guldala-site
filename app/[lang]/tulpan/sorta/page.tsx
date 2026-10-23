@@ -1,10 +1,12 @@
 import Link from "next/link";
 import { Suspense, type ReactNode } from "react";
+import { OrderBar } from "@/components/Picks";
 import { ColorDot, Ph } from "@/components/ui";
 import { VarietyCard } from "@/components/VarietyCard";
 import { COLOR_HEX, COLOR_IDS, TULIP_TYPES, type ColorId, type TulipType } from "@/content/colors";
 import { VARIETIES } from "@/content/varieties";
 import { getDict, pageMeta } from "@/lib/dict";
+import { isToken } from "@/lib/orders";
 import { getSeason } from "@/lib/season";
 
 type Filters = { color?: ColorId; type?: TulipType; stock?: "1" };
@@ -17,7 +19,7 @@ export async function generateMetadata() {
 export default async function SortaPage({ searchParams }: PageProps<"/[lang]/tulpan/sorta">) {
   const { t } = await getDict();
   return (
-    <div className="shell py-10 md:py-14">
+    <div className="shell pt-10 pb-28 md:pt-14">
       <h1 className="text-3xl sm:text-4xl">{t.sorta.h1}</h1>
       <p className="mt-2 max-w-2xl text-muted">
         {t.sorta.lead} <Ph>{t.ph.varieties}</Ph>
@@ -32,15 +34,16 @@ export default async function SortaPage({ searchParams }: PageProps<"/[lang]/tul
 async function Catalog({ searchParams }: { searchParams: PageProps<"/[lang]/tulpan/sorta">["searchParams"] }) {
   const { t, href: local } = await getDict();
   const sp = await searchParams;
+  const token = typeof sp.c === "string" && isToken(sp.c) ? sp.c : undefined;
   // Query string is user input: keep only known values
   const f: Filters = {
     color: COLOR_IDS.find((c) => c === sp.color),
     type: TULIP_TYPES.find((x) => x === sp.type),
     stock: sp.stock === "1" ? "1" : undefined,
   };
-  const { stock } = await getSeason();
-  const statusOf = (color: ColorId, type: TulipType) =>
-    stock.find((s) => s.color === color && s.type === type)?.status ?? "none";
+  const { asOf, priceGrid, stock } = await getSeason();
+  const line = (color: ColorId, type: TulipType) => stock.find((s) => s.color === color && s.type === type);
+  const statusOf = (color: ColorId, type: TulipType) => line(color, type)?.status ?? "none";
 
   const items = VARIETIES.filter(
     (v) =>
@@ -91,13 +94,14 @@ async function Catalog({ searchParams }: { searchParams: PageProps<"/[lang]/tulp
         <ul className="mt-4 grid grid-cols-2 gap-x-4 gap-y-8 md:grid-cols-3 lg:grid-cols-4">
           {items.map((v) => (
             <li key={v.slug}>
-              <VarietyCard v={v} status={statusOf(v.color, v.type)} />
+              <VarietyCard v={v} status={statusOf(v.color, v.type)} max={line(v.color, v.type)?.maxPacks ?? 0} />
             </li>
           ))}
         </ul>
       ) : (
         <p className="mt-10 rounded-2xl bg-surface p-8 text-center text-muted">{t.sorta.empty}</p>
       )}
+      <OrderBar data={{ asOf, priceGrid, stock }} href={local("/tulpan/zakaz")} token={token} t={t.calc.bar} />
     </>
   );
 }

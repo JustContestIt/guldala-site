@@ -21,6 +21,7 @@ export type PublicOrder = {
 };
 
 const TOKEN = /^[0-9a-f-]{36}$/i;
+export const isToken = (s: string) => TOKEN.test(s);
 
 // Always fresh: the client opens this page to see what changed
 export const getOrder = (token: string) => (TOKEN.test(token) ? crmGet<PublicOrder>(`/orders/${token}`) : Promise.resolve(null));

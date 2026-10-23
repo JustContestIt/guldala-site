@@ -5,6 +5,9 @@ ENV NEXT_TELEMETRY_DISABLED=1
 COPY package.json package-lock.json ./
 RUN npm ci
 COPY . .
+# Static pages (sitemap, robots, canonical links) are rendered now, so they need the real address now
+ARG SITE_URL
+ENV SITE_URL=$SITE_URL
 # next/font downloads Google Fonts here, so the build needs network access
 RUN npm run build
 

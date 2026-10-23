@@ -1,3 +1,4 @@
+import type { Lang } from "@/lib/i18n";
 import type { ColorId, TulipType } from "./colors";
 
 // Stock status is not stored here: it comes from the season source by color × type
@@ -7,20 +8,52 @@ export type Variety = {
   color: ColorId;
   type: TulipType;
   photos: string[];
-  stemLength?: number;
+  height?: string; // plant height in cm from the bulb exporters, "40–45"
   vaseLife?: number;
+  description: Record<Lang, string>;
 };
 
-// Placeholders until Tatiana sends the list of 46 varieties with color and type
+// Season 2027 bulb order (../bulb-order-2027.md). Color, type, height and descriptions: Dutch bulb exporters
+// (Haakman, Jan de Wit, P. Aker and others), checked 23.10.2026. Cream varieties sit under white, lilac-pink under
+// pink, bicolors under their main color — Tatiana confirms the grouping; it decides which stock line a variety uses.
+const v = (slug: string, name: string, color: ColorId, type: TulipType, height: string | undefined, ru: string, kz: string): Variety => ({
+  slug, name, color, type, height, photos: [], description: { ru, kz },
+});
+
 export const VARIETIES: Variety[] = [
-  { slug: "sort-1", name: "[СОРТ 1]", color: "red", type: "classic", photos: [] },
-  { slug: "sort-2", name: "[СОРТ 2]", color: "red", type: "classic", photos: [] },
-  { slug: "sort-3", name: "[СОРТ 3]", color: "white", type: "classic", photos: [] },
-  { slug: "sort-4", name: "[СОРТ 4]", color: "pink", type: "classic", photos: [] },
-  { slug: "sort-5", name: "[СОРТ 5]", color: "pink", type: "classic", photos: [] },
-  { slug: "sort-6", name: "[СОРТ 6]", color: "yellow", type: "classic", photos: [] },
-  { slug: "sort-7", name: "[СОРТ 7]", color: "purple", type: "classic", photos: [] },
-  { slug: "sort-8", name: "[СОРТ 8]", color: "orange", type: "classic", photos: [] },
-  { slug: "sort-9", name: "[СОРТ 9]", color: "pink", type: "double", photos: [] },
-  { slug: "sort-10", name: "[СОРТ 10]", color: "white", type: "double", photos: [] },
+  v("strong-love", "Strong Love", "red", "classic", "40–50", "Глубокий бархатисто-красный цветок 8–10 см на прочном стебле.", "Терең барқыт-қызыл гүл, 8–10 см, берік сабақта."),
+  v("first-star", "First Star", "red", "classic", "35", "Заострённые лепестки и плотно сомкнутый бутон, стебель короткий или средний.", "Күлтелері үшкір, бүршігі тығыз жабық, сабағы қысқа немесе орташа."),
+  v("body-builder", "Body Builder", "red", "classic", "50", "Двухцветный, красный с жёлтым, на длинном стебле.", "Екі түсті, сарымен қызыл, сабағы ұзын."),
+  v("hennie-van-der-most", "Hennie van der Most", "red", "classic", "30–50", "Узкие красные лепестки с широкой золотисто-жёлтой каймой.", "Жіңішке қызыл күлтелер кең алтын-сары жиекпен көмкерілген."),
+  v("roman-empire", "Roman Empire", "red", "classic", "55", "Ярко-красные лепестки с кремово-белым «пламенем» по краю, высокий стебель.", "Ашық қызыл күлтелердің шетінде кілегей-ақ «жалын», сабағы биік."),
+  v("polar-bear", "Polar Bear", "white", "classic", "50", "Белый тюльпан раннего цветения с высоким стеблем.", "Ерте гүлдейтін ақ қызғалдақ, сабағы биік."),
+  v("mrs-medvedeva", "Mrs. Medvedeva", "white", "classic", "45", "Белый тюльпан, стебель средней длины.", "Ақ қызғалдақ, сабағы орташа ұзындықта."),
+  v("creme-fraiche", "Crème Fraiche", "white", "classic", "45", "Кремовый с лёгким жёлтым оттенком, крупный классический бокал.", "Сарғыштау кілегей түсті, ірі классикалық тостаған."),
+  v("fondue", "Fondue", "white", "classic", "40", "Раскрывается атласным нежно-жёлтым цветком и светлеет до цвета слоновой кости.", "Атлас тәрізді нәзік сары гүл болып ашылып, піл сүйегі түсіне дейін ағарады."),
+  v("fun-for-two", "Fun For Two", "white", "classic", "45", "Кремовый тюльпан, стебель средней длины.", "Кілегей түсті қызғалдақ, сабағы орташа ұзындықта."),
+  v("avant-garde", "Avant Garde", "white", "double", "45–50", "Крупный пионовидный цветок кремово-белого цвета с бледно-масляной серединкой, толстый прочный стебель, лёгкий аромат.", "Ортасы бозғылт сары, кілегей-ақ ірі пион тәрізді гүл, сабағы жуан әрі берік, жеңіл хош иісі бар."),
+  v("argos", "Argos", "pink", "classic", "40–45", "Сиренево-розовый цветок со светлой каймой, классический бокал на прочном стебле.", "Ашық жиекті сиреньді-қызғылт гүл, берік сабақтағы классикалық тостаған."),
+  v("barre-alta", "Barre Alta", "pink", "classic", "45", "Розовые лепестки к краю светлеют до нежно-розового с коралловым оттенком.", "Қызғылт күлтелер шетіне қарай маржан реңкті нәзік қызғылтқа ауысады."),
+  v("first-class", "First Class", "pink", "classic", "40–45", "Нежно-розовый с белым, цветки долго держатся, стебель прочный.", "Ақпен нәзік қызғылт, гүлі ұзақ тұрады, сабағы берік."),
+  v("gabriella", "Gabriella", "pink", "classic", "40–45", "Заострённые лепестки: нежно-розовое «пламя» переходит в кайму цвета слоновой кости.", "Үшкір күлтелер: нәзік қызғылт «жалын» піл сүйегі түсті жиекке ауысады."),
+  v("light-pink-prince", "Light Pink Prince", "pink", "classic", "30–40", "Ранний, пастельно-розовый с жемчужным отливом, крупный бокаловидный бутон.", "Ерте гүлдейді, інжу жылтырлы пастель-қызғылт, бүршігі ірі тостаған тәрізді."),
+  v("memphis", "Memphis", "pink", "classic", "50–55", "Чашевидный цветок: белое основание переходит в насыщенно-розовый край, высокий прочный стебель.", "Тостаған тәрізді гүл: ақ түбі қанық қызғылт жиекке ауысады, сабағы биік әрі берік."),
+  v("mosni", "Mosni", "pink", "classic", "45", "Розовый тюльпан с длинным стеблем.", "Сабағы ұзын қызғылт қызғалдақ."),
+  v("pink-twist", "Pink Twist", "pink", "classic", "35–40", "Насыщенно-розовый тюльпан позднего цветения.", "Кеш гүлдейтін қанық қызғылт қызғалдақ."),
+  v("sissi", "Sissi", "pink", "classic", "50–55", "Насыщенно-розовый со светлыми краями и основанием цвета слоновой кости, прочный стебель.", "Жиегі ашық, түбі піл сүйегі түстес қанық қызғылт, сабағы берік."),
+  v("tresor", "Tresor", "pink", "classic", "50–60", "Лилово-розовый тюльпан на высоком стебле.", "Биік сабақтағы күлгін-қызғылт қызғалдақ."),
+  v("columbus", "Columbus", "pink", "double", "45–50", "Крупный пионовидный цветок насыщенно-розового цвета с белой каймой на прочном высоком стебле.", "Ақ жиекті қанық қызғылт ірі пион тәрізді гүл, биік әрі берік сабақта."),
+  v("mariage", "Mariage", "pink", "double", "45", "Нежно-розовый пионовидный цветок, бывает несколько цветков на стебле, стебель прочный.", "Нәзік қызғылт пион тәрізді гүл, кейде бір сабақта бірнеше гүл, сабағы берік."),
+  v("strong-gold", "Strong Gold", "yellow", "classic", "45–55", "Насыщенный золотисто-жёлтый цветок 8–10 см на прочном стебле, один из главных сортов на срезку.", "Берік сабақтағы 8–10 см қанық алтын-сары гүл, кесуге арналған негізгі сорттардың бірі."),
+  v("cheers", "Cheers", "yellow", "classic", "40–50", "Бледно-жёлтый, переходящий в слоновую кость цветок на высоком стебле.", "Піл сүйегі түсіне ауысатын бозғылт сары гүл, сабағы биік."),
+  v("novi-sun", "Novi Sun", "yellow", "classic", undefined, "Дарвинов гибрид с ярко-жёлтыми лепестками, стебель средней длины.", "Күлтелері ашық сары Дарвин гибриді, сабағы орташа ұзындықта."),
+  v("cadenza", "Cadenza", "yellow", "double", "40", "Жёлтый махровый тюльпан, стебель средней длины.", "Сары қос күлтелі қызғалдақ, сабағы орташа ұзындықта."),
+  v("bullit", "Bullit", "purple", "classic", "45", "Глубокий фиолетовый, переходящий в бордовый, цветок с атласным блеском на прочном стебле.", "Атлас жылтырлы, күрең қызылға ауысатын терең күлгін гүл, сабағы берік."),
+  v("fortress", "Fortress", "purple", "classic", "55", "Фиолетовый тюльпан с высоким стеблем.", "Сабағы биік күлгін қызғалдақ."),
+  v("delta-storm", "Delta Storm", "orange", "classic", "50–60", "Мягко-оранжевый цветок с тонкой жёлто-оранжевой каймой, длинный стебель устойчив к ветру и дождю.", "Жіңішке сары-қызғылт сары жиекті жұмсақ қызғылт сары гүл, ұзын сабағы желге және жаңбырға төзімді."),
+  v("icoon", "Icoon", "orange", "double", "45–50", "Поздний, крупные плотные пионовидные цветки красно-оранжевого цвета 7–10 см, с ароматом.", "Кеш гүлдейді, 7–10 см тығыз ірі қызыл-қызғылт сары пион тәрізді гүлдер, хош иісті."),
 ];
+
+// Varieties sold as one line (same color × type): they share the stock of that line
+export const groupOf = (x: Pick<Variety, "color" | "type">) =>
+  VARIETIES.filter((y) => y.color === x.color && y.type === x.type).map((y) => y.slug);

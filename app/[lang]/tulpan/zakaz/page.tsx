@@ -1,8 +1,9 @@
+import { cookies } from "next/headers";
 import { Suspense } from "react";
 import { getDict, pageMeta } from "@/lib/dict";
 import { getPrefill } from "@/lib/orders";
 import { getSeason } from "@/lib/season";
-import { Calculator } from "./Calculator";
+import { Checkout } from "./Checkout";
 
 export async function generateMetadata() {
   const { t } = await getDict();
@@ -22,23 +23,22 @@ export default async function ZakazPage({ searchParams }: PageProps<"/[lang]/tul
   );
 }
 
-// ?product=<id> preselects a color coming from the catalog; ?c=TOKEN fills the contacts in from a WhatsApp link
+// The token of a WhatsApp link (?c=, or the cookie the catalog set from it) fills the contacts in
 async function Loader({ searchParams }: { searchParams: PageProps<"/[lang]/tulpan/zakaz">["searchParams"] }) {
-  const { lang, t } = await getDict();
-  const { product, c } = await searchParams;
-  const [{ season, asOf, priceGrid, stock }, prefill] = await Promise.all([getSeason(), typeof c === "string" ? getPrefill(c).catch(() => null) : null]);
-  const initial = stock.find((s) => s.productId === product && s.status !== "none")?.productId;
+  const { lang, t, href } = await getDict();
+  const { c: q } = await searchParams;
+  const c = typeof q === "string" ? q : (await cookies()).get("guldala_c")?.value;
+  const [{ season, asOf, priceGrid, stock }, prefill] = await Promise.all([getSeason(), c ? getPrefill(c).catch(() => null) : null]);
   const labels = Object.fromEntries(stock.map((s) => [s.productId, t.product(s.color, s.type)]));
   return (
-    <Calculator
+    <Checkout
       lang={lang}
       data={{ season, asOf, priceGrid, stock }}
       t={t.calc}
-      stockT={t.stock}
       labels={labels}
-      initial={initial}
+      catalogHref={href("/tulpan/sorta")}
       client={prefill?.client}
-      prefillToken={prefill ? (c as string) : undefined}
+      prefillToken={prefill ? c : undefined}
     />
   );
 }

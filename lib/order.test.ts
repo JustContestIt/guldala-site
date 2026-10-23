@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { parseItems, prepaymentAmount, quote, slotsFor } from "./order";
+import { linesFromPicks, parsePicks, prepaymentAmount, quote, serializePicks, slotsFor } from "./order";
 import { ID, season } from "./season.fixture";
 
 const DAY = "2026-10-21";
@@ -32,14 +32,31 @@ describe("order quote", () => {
     expect(quote(season, [{ productId: ID.red, packs: 4 }], 100, "2027-03-08").closed).toBe(true);
   });
 
-  it("rejects malformed items and unknown products", () => {
-    expect(parseItems(`${ID.red}:4,${ID.whiteDouble}:2`)).toEqual([
+  it("adds varieties of one color into one line and keeps their names", () => {
+    const varieties = [
+      { slug: "strong-love", name: "Strong Love", color: "red", type: "classic" },
+      { slug: "bullit", name: "Bullit", color: "red", type: "classic" },
+      { slug: "polar-bear", name: "Polar Bear", color: "white", type: "classic" },
+      { slug: "nowhere", name: "Nowhere", color: "yellow", type: "classic" }, // no such product in the season
+    ] as const;
+    const r = linesFromPicks({ "strong-love": 3, bullit: 1, "polar-bear": 2, nowhere: 5, unknown: 4 }, [...varieties], season.stock);
+    expect(r.lines).toEqual([
       { productId: ID.red, packs: 4 },
-      { productId: ID.whiteDouble, packs: 2 },
+      { productId: ID.white, packs: 2 },
     ]);
-    expect(parseItems(`${ID.red}:-1`)).toBeNull();
-    expect(parseItems(`${ID.red}:4;drop`)).toBeNull();
-    expect(parseItems("red-classic:4")).toBeNull();
+    expect(r.sorts).toEqual([
+      { name: "Strong Love", packs: 3 },
+      { name: "Bullit", packs: 1 },
+      { name: "Polar Bear", packs: 2 },
+    ]);
+  });
+
+  it("rejects malformed picks and unknown products", () => {
+    expect(parsePicks("strong-love:3,polar-bear:12")).toEqual({ "strong-love": 3, "polar-bear": 12 });
+    expect(serializePicks({ "strong-love": 3, bullit: 0 })).toBe("strong-love:3");
+    expect(parsePicks("strong-love:-1")).toBeNull();
+    expect(parsePicks("strong-love:3;drop")).toBeNull();
+    expect(parsePicks("Strong Love:3")).toBeNull();
     const unknown = "99999999-9999-4999-8999-999999999999";
     expect(quote(season, [{ productId: unknown, packs: 4 }], 100, DAY).unknown).toEqual([unknown]);
   });

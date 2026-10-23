@@ -1,6 +1,6 @@
 import type { ColorId, TulipType } from "../content/colors";
 import { pricePerStem } from "./pricing";
-import type { PrepaymentPct, SeasonCurrent } from "./season";
+import type { PrepaymentPct, SeasonCurrent, StockItem } from "./season";
 
 export const PACK_SIZE = 30;
 export const MIN_STEMS = 120; // in total across colors (CRM assumption min_order_scope = total)
@@ -66,19 +66,41 @@ export function quote(
   };
 }
 
-// "<productId>:4,<productId>:2" — the order as it travels in a form field or URL; null if malformed
-export function parseItems(s: string): OrderLine[] | null {
-  if (!s) return [];
-  const out: OrderLine[] = [];
+// The catalog order: variety slug → packs. The CRM sells color × type, so varieties of one color add up to one line;
+// the variety names reach Tatiana in the order comment as wishes (spec §14).
+export type Picks = Record<string, number>;
+type VarietyRef = { slug: string; name: string; color: ColorId; type: TulipType };
+
+export function linesFromPicks(picks: Picks, varieties: VarietyRef[], stock: Pick<StockItem, "productId" | "color" | "type">[]) {
+  const packs = new Map<string, number>();
+  const sorts: { name: string; packs: number }[] = [];
+  for (const v of varieties) {
+    const n = picks[v.slug];
+    const s = n ? stock.find((x) => x.color === v.color && x.type === v.type) : undefined;
+    if (!s) continue;
+    packs.set(s.productId, (packs.get(s.productId) ?? 0) + n);
+    sorts.push({ name: v.name, packs: n });
+  }
+  return { lines: [...packs].map(([productId, n]): OrderLine => ({ productId, packs: n })), sorts };
+}
+
+// "slug:3,slug:1" — picks as they travel in a form field; null if malformed
+export function parsePicks(s: string): Picks | null {
+  const out: Picks = {};
+  if (!s) return out;
   for (const part of s.split(",")) {
-    const m = /^([0-9a-f-]{36}):(\d{1,3})$/i.exec(part);
+    const m = /^([a-z0-9-]{1,60}):(\d{1,3})$/.exec(part);
     if (!m) return null;
-    out.push({ productId: m[1], packs: Number(m[2]) });
+    out[m[1]] = Number(m[2]);
   }
   return out;
 }
 
-export const serializeItems = (lines: OrderLine[]) => lines.map((l) => `${l.productId}:${l.packs}`).join(",");
+export const serializePicks = (p: Picks) =>
+  Object.entries(p)
+    .filter(([, n]) => n > 0)
+    .map(([slug, n]) => `${slug}:${n}`)
+    .join(",");
 
 const SLOTS = ["08:00–12:00", "12:00–15:00", "15:00–18:00"];
 const PEAK_SLOTS = [...SLOTS, "18:00–21:00", "21:00–23:00"];

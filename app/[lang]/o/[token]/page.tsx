@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { Icon } from "@/components/icons";
 import { Photo } from "@/components/Photo";
+import { ClearPicks } from "@/components/Picks";
 import { ButtonLink, Ph } from "@/components/ui";
 import { waLink } from "@/content/site";
 import { getDict } from "@/lib/dict";
@@ -18,18 +19,20 @@ export async function generateMetadata({ params }: PageProps<"/[lang]/o/[token]"
 }
 
 // The order lives in the CRM and changes there: read on every visit, never at build time
-export default function OrderPage({ params }: PageProps<"/[lang]/o/[token]">) {
+export default function OrderPage({ params, searchParams }: PageProps<"/[lang]/o/[token]">) {
   return (
     <div className="shell max-w-3xl py-10 md:py-14">
       <Suspense fallback={<div className="h-96 rounded-3xl bg-surface" />}>
-        <Order params={params} />
+        <Order params={params} searchParams={searchParams} />
       </Suspense>
     </div>
   );
 }
 
-async function Order({ params }: { params: PageProps<"/[lang]/o/[token]">["params"] }) {
+// ?new=1: the site has just sent this order — empty the basket and say how payment works
+async function Order({ params, searchParams }: Pick<PageProps<"/[lang]/o/[token]">, "params" | "searchParams">) {
   const { token } = await params;
+  const isNew = (await searchParams).new === "1";
   const order = await getOrder(token);
   if (!order) notFound();
   const { t } = await getDict();
@@ -48,6 +51,18 @@ async function Order({ params }: { params: PageProps<"/[lang]/o/[token]">["param
         <p className="mt-2">{status.next}</p>
         {order.holdUntil && <p className="mt-4 font-semibold text-accent">{t.order.hold(order.holdUntil, daysLeft)}</p>}
       </section>
+
+      {isNew && (
+        <section className={`mt-6 ${box}`}>
+          <ClearPicks />
+          <h2 className="text-lg">{t.order.kaspiTitle}</h2>
+          <ol className="mt-2 grid list-decimal gap-1 pl-5 text-sm">
+            {t.order.kaspiSteps.map((x) => (
+              <li key={x}>{x}</li>
+            ))}
+          </ol>
+        </section>
+      )}
 
       {order.invoice && (
         <section className={`mt-6 ${box}`}>

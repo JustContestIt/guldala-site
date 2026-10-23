@@ -4,10 +4,11 @@ import { updateTag } from "next/cache";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { ru } from "@/content/dict/ru";
+import { VARIETIES } from "@/content/varieties";
 import { crmPost } from "@/lib/crm";
 import { tenge } from "@/lib/format";
 import { isLang, localHref } from "@/lib/i18n";
-import { parseItems, quote, slotsFor } from "@/lib/order";
+import { linesFromPicks, parsePicks, quote, slotsFor } from "@/lib/order";
 import { almatyDay, PREPAYMENTS } from "@/lib/pricing";
 import { cachedSeason, type PrepaymentPct } from "@/lib/season";
 import { isBin, normalizePhone, text } from "@/lib/validate";
@@ -21,11 +22,15 @@ export async function submitOrder(_: OrderState, fd: FormData): Promise<OrderSta
   if (text(fd.get("website"))) return null; // honeypot: bots fill every field
   const lang = isLang(text(fd.get("lang"))) ? (text(fd.get("lang")) as "ru" | "kz") : "ru";
   const pct = Number(fd.get("pct")) as PrepaymentPct;
-  const items = parseItems(text(fd.get("items"), 400));
-  if (!PREPAYMENTS.includes(pct) || !items) return { errors: ["items"] };
+  const picks = parsePicks(text(fd.get("picks"), 2000));
+  if (!PREPAYMENTS.includes(pct) || !picks) return { errors: ["items"] };
 
   const { season, asOf, priceGrid, stock } = await cachedSeason();
-  const q = quote({ priceGrid, stock }, items, pct, almatyDay(new Date(asOf)));
+  const { lines, sorts } = linesFromPicks(picks, VARIETIES, stock);
+  const q = quote({ priceGrid, stock }, lines, pct, almatyDay(new Date(asOf)));
+  // The CRM sells colors; the varieties the client picked reach Tatiana as a wish
+  const wishes = sorts.length ? `Сорта: ${sorts.map((x) => `${x.name} — ${x.packs} пач.`).join(", ")}` : "";
+  const comment = [wishes, text(fd.get("comment"), 1000)].filter(Boolean).join("\n");
   const date = text(fd.get("date"), 10);
   const slot = text(fd.get("slot"), 20);
   const method = fd.get("method") === "client_truck" ? "client_truck" : "self";
@@ -58,7 +63,7 @@ export async function submitOrder(_: OrderState, fd: FormData): Promise<OrderSta
     `Вывоз ${date} ${slot}, ${method === "self" ? "самовывоз" : "машина клиента"}${fd.get("storage") ? ", холодильник до вывоза" : ""}`,
     `${company}, ${name}, ${phone}`,
     legal === "too" ? `ТОО «${org}», БИН ${bin}` : "ИП",
-    text(fd.get("comment"), 1000),
+    comment,
   ]
     .filter(Boolean)
     .join("\n");
@@ -75,7 +80,7 @@ export async function submitOrder(_: OrderState, fd: FormData): Promise<OrderSta
         pickupMethod: method,
         storage: !!fd.get("storage"),
         client: { company, name, phone, legalType: legal, bin, orgName: org },
-        comment: text(fd.get("comment"), 1000),
+        comment,
         source: "site",
         prefillToken: text(fd.get("c"), 40),
       },
@@ -87,5 +92,5 @@ export async function submitOrder(_: OrderState, fd: FormData): Promise<OrderSta
   }
   if (!r.ok) return { errors: [], message: r.error };
   updateTag("season"); // stock changed: the next visitor sees it
-  redirect(localHref(lang, `/o/${r.data.token}`));
+  redirect(localHref(lang, `/o/${r.data.token}?new=1`)); // ?new=1: the order page empties the basket
 }

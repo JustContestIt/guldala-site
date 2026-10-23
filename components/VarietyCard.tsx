@@ -1,13 +1,15 @@
 import Link from "next/link";
 import { COLOR_HEX } from "@/content/colors";
-import type { Variety } from "@/content/varieties";
+import { groupOf, type Variety } from "@/content/varieties";
 import { getDict } from "@/lib/dict";
 import type { StockStatus } from "@/lib/season";
 import { Photo } from "./Photo";
+import { PickStepper } from "./Picks";
 import { ColorDot, StockBadge } from "./ui";
 
-export async function VarietyCard({ v, status }: { v: Variety; status: StockStatus }) {
-  const { t, href } = await getDict();
+// max: packs left for this variety's color × type (shared by every variety of that color)
+export async function VarietyCard({ v, status, max }: { v: Variety; status: StockStatus; max: number }) {
+  const { t, href, lang } = await getDict();
   const page = href(`/tulpan/sorta/${v.slug}`);
   return (
     <article className="flex flex-col">
@@ -23,16 +25,14 @@ export async function VarietyCard({ v, status }: { v: Variety; status: StockStat
         <ColorDot hex={COLOR_HEX[v.color]} />
         {t.colors[v.color]} · {t.types[v.type].toLocaleLowerCase(t.locale)}
       </p>
+      <p className="mt-1 line-clamp-2 text-sm text-muted">{v.description[lang]}</p>
       <div className="mt-2">
         <StockBadge status={status} t={t.stock} />
       </div>
       {status !== "none" && (
-        <Link
-          href={href(`/tulpan/zakaz?product=${v.color}-${v.type}`)}
-          className="mt-3 inline-flex min-h-11 items-center justify-center rounded-xl border border-line px-3 text-center text-sm font-semibold hover:bg-mint"
-        >
-          {t.variety.order(t.product(v.color, v.type))}
-        </Link>
+        <div className="mt-3">
+          <PickStepper slug={v.slug} group={groupOf(v)} max={max} label={v.name} t={t.calc} />
+        </div>
       )}
     </article>
   );

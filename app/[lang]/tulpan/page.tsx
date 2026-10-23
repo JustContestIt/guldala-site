@@ -85,7 +85,7 @@ async function TulpanBody() {
               </p>
             )}
             <div className="mt-6 flex flex-wrap gap-3">
-              <ButtonLink href={href("/tulpan/zakaz")}>{t.tulpan.calcCta}</ButtonLink>
+              <ButtonLink href={href("/tulpan/sorta")}>{t.tulpan.calcCta}</ButtonLink>
               <ButtonLink href={waLink(t.wa.tulips)} variant="secondary">
                 <Icon name="chat" /> {t.wa.button}
               </ButtonLink>

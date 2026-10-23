@@ -1,4 +1,5 @@
-export const SITE_URL = "https://guldala.kz";
+// canonical, sitemap and OG links; set at build time (Docker build arg), the default is the future domain
+export const SITE_URL = process.env.SITE_URL || "https://guldala.kz";
 
 export const CONTACTS = {
   phone: "+7 777 100 66 67",
