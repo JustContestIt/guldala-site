@@ -11,6 +11,10 @@ npm test                     # расчёт цены и заказа, прове
 
 ## Деплой в Docker
 
+**Продакшен** — службой `site` в `crm/deploy/docker-compose.yml`, вместе с CRM и общим Caddy: репозитории `guldala-crm` и `guldala-site` клонируются рядом, сайт отвечает на `DOMAIN` и `botanica.DOMAIN`, `TELEGRAM_*` задаются в `crm/deploy/.env`. Инструкция — `crm/deploy/README.md`. Адрес для canonical, sitemap и OG пока зашит в `content/site.ts` (`https://guldala.kz`).
+
+Отдельно, без CRM:
+
 ```bash
 cp .env.example .env          # вписать TELEGRAM_BOT_TOKEN и TELEGRAM_CHAT_ID
 docker compose up -d --build  # сайт на :3000
@@ -18,7 +22,7 @@ docker compose logs -f        # заявки видны в логе, даже б
 ```
 
 Без compose: `docker build -t guldala-site .` и `docker run -d -p 3000:3000 --env-file .env --restart unless-stopped guldala-site`.
-Образ собирается из `output: "standalone"`; при сборке нужен интернет (next/font скачивает шрифты). HTTPS и домен guldala.kz — через обратный прокси перед контейнером (Caddy или nginx).
+Образ собирается из `output: "standalone"`; при сборке нужен интернет (next/font скачивает шрифты).
 
 ## Где что лежит
 
