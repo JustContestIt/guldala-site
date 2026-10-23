@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Suspense } from "react";
 import { Icon } from "@/components/icons";
 import { OrderSteps } from "@/components/OrderSteps";
 import { Photo } from "@/components/Photo";
@@ -14,7 +15,15 @@ export async function generateMetadata() {
   return pageMeta("/", t.meta.site, t.meta.siteDesc);
 }
 
-export default async function Home() {
+export default function Home() {
+  return (
+    <Suspense fallback={null}>
+      <HomeBody />
+    </Suspense>
+  );
+}
+
+async function HomeBody() {
   const { t, href } = await getDict();
   const { season, prices } = await getSeason();
   const ext = { target: "_blank", rel: "noopener noreferrer", className: "flex min-h-8 items-center gap-2 hover:text-accent" };

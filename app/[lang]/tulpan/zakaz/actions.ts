@@ -1,27 +1,30 @@
 "use server";
 
+import { updateTag } from "next/cache";
+import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { ru } from "@/content/dict/ru";
+import { crmPost } from "@/lib/crm";
 import { tenge } from "@/lib/format";
 import { isLang, localHref } from "@/lib/i18n";
-import { notifyTatiana } from "@/lib/notify";
-import { parseItems, quote, serializeItems, slotsFor } from "@/lib/order";
+import { parseItems, quote, slotsFor } from "@/lib/order";
 import { almatyDay, PREPAYMENTS } from "@/lib/pricing";
-import { getSeason, type PrepaymentPct } from "@/lib/season";
+import { cachedSeason, type PrepaymentPct } from "@/lib/season";
 import { isBin, normalizePhone, text } from "@/lib/validate";
 
 export type OrderError = "items" | "stock" | "closed" | "min" | "date" | "slot" | "company" | "name" | "phone" | "bin" | "org" | "send";
-export type OrderState = { errors: OrderError[]; overStock?: string[]; waText?: string } | null;
+// message: the CRM's own refusal text (Russian), shown as is
+export type OrderState = { errors: OrderError[]; overStock?: string[]; waText?: string; message?: string } | null;
 
-// Everything from the form is re-checked here: prices and stock come from the season source, not the browser
+// Everything from the form is re-checked here, then once more by the CRM, which owns prices and stock
 export async function submitOrder(_: OrderState, fd: FormData): Promise<OrderState> {
   if (text(fd.get("website"))) return null; // honeypot: bots fill every field
-  const lang = text(fd.get("lang"));
+  const lang = isLang(text(fd.get("lang"))) ? (text(fd.get("lang")) as "ru" | "kz") : "ru";
   const pct = Number(fd.get("pct")) as PrepaymentPct;
   const items = parseItems(text(fd.get("items"), 400));
   if (!PREPAYMENTS.includes(pct) || !items) return { errors: ["items"] };
 
-  const { season, asOf, priceGrid, stock } = await getSeason();
+  const { season, asOf, priceGrid, stock } = await cachedSeason();
   const q = quote({ priceGrid, stock }, items, pct, almatyDay(new Date(asOf)));
   const date = text(fd.get("date"), 10);
   const slot = text(fd.get("slot"), 20);
@@ -47,10 +50,9 @@ export async function submitOrder(_: OrderState, fd: FormData): Promise<OrderSta
   if (legal === "too" && !org) errors.push("org");
   if (errors.length) return { errors, overStock: q.overStock };
 
-  // shortcut: random number, may repeat; the CRM will assign T-YYYY-NNNN from its own counter
-  const orderNumber = `T-${season.id}-${String(Math.floor(Math.random() * 10_000)).padStart(4, "0")}`;
-  const message = [
-    `Заявка ${orderNumber} с сайта${lang === "kz" ? " (KZ)" : ""}`,
+  // The same request as a WhatsApp text: the way out when the CRM is unreachable
+  const waText = [
+    `Заявка с сайта${lang === "kz" ? " (KZ)" : ""}`,
     ...q.lines.map((l) => `${ru.product(l.color, l.type)}: ${l.packs} пач. × ${l.pricePerStem} ₸ = ${tenge(l.sum)}`),
     `Итого ${tenge(q.total)}, предоплата ${pct} % = ${tenge(q.prepayment)}, остаток ${tenge(q.remainder)}`,
     `Вывоз ${date} ${slot}, ${method === "self" ? "самовывоз" : "машина клиента"}${fd.get("storage") ? ", холодильник до вывоза" : ""}`,
@@ -61,8 +63,29 @@ export async function submitOrder(_: OrderState, fd: FormData): Promise<OrderSta
     .filter(Boolean)
     .join("\n");
 
-  if (!(await notifyTatiana(message))) return { errors: ["send"], waText: message };
-
-  const params = new URLSearchParams({ n: orderNumber, p: String(pct), i: serializeItems(q.lines), d: date });
-  redirect(`${localHref(isLang(lang) ? lang : "ru", "/tulpan/zakaz/gotovo")}?${params}`);
+  let r: Awaited<ReturnType<typeof crmPost<{ token: string }>>>;
+  try {
+    r = await crmPost<{ token: string }>(
+      "/orders",
+      {
+        items: q.lines.map((l) => ({ productId: l.productId, packs: l.packs })),
+        prepaymentPct: pct,
+        pickupDate: date,
+        pickupSlot: slot,
+        pickupMethod: method,
+        storage: !!fd.get("storage"),
+        client: { company, name, phone, legalType: legal, bin, orgName: org },
+        comment: text(fd.get("comment"), 1000),
+        source: "site",
+        prefillToken: text(fd.get("c"), 40),
+      },
+      (await headers()).get("x-forwarded-for"),
+    );
+  } catch (e) {
+    console.error(`[guldala] CRM недоступна: ${e}`);
+    return { errors: ["send"], waText };
+  }
+  if (!r.ok) return { errors: [], message: r.error };
+  updateTag("season"); // stock changed: the next visitor sees it
+  redirect(localHref(lang, `/o/${r.data.token}`));
 }

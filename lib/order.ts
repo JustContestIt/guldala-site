@@ -66,12 +66,12 @@ export function quote(
   };
 }
 
-// "red-classic:4,white-double:2" — the order as it travels in a form field or URL; null if malformed
+// "<productId>:4,<productId>:2" — the order as it travels in a form field or URL; null if malformed
 export function parseItems(s: string): OrderLine[] | null {
   if (!s) return [];
   const out: OrderLine[] = [];
   for (const part of s.split(",")) {
-    const m = /^([a-z]+-(?:classic|double)):(\d{1,3})$/.exec(part);
+    const m = /^([0-9a-f-]{36}):(\d{1,3})$/i.exec(part);
     if (!m) return null;
     out.push({ productId: m[1], packs: Number(m[2]) });
   }
@@ -86,5 +86,5 @@ const PEAK_SLOTS = [...SLOTS, "18:00–21:00", "21:00–23:00"];
 // Pickup hours: 8:00–18:00, from peakHoursFrom until 8 March — till 23:00
 export function slotsFor(season: SeasonCurrent["season"], date: string): string[] {
   if (!date || date < season.pickupFrom || date > season.pickupTo) return [];
-  return date >= season.peakHoursFrom ? PEAK_SLOTS : SLOTS;
+  return season.peakHoursFrom && date >= season.peakHoursFrom ? PEAK_SLOTS : SLOTS;
 }

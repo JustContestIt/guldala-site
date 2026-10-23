@@ -1,36 +1,51 @@
 # Контракт сайт ↔ CRM
 
-Для CRM-сессии. Сайт не хранит цены, наличие и заказы — читает и создаёт их через эти эндпоинты. Сейчас на сайте моки той же формы (`lib/mock-season.ts`, `lib/orders.ts`). При расхождении побеждает модель данных CRM (`GULDALA_CRM_SPEC.md`), сайт подстроится.
+Сайт не хранит цены, наличие и заказы — читает и создаёт их через `/public/*` CRM (`lib/crm.ts`, `lib/season.ts`, `lib/orders.ts`). При расхождении побеждает модель данных CRM (`GULDALA_CRM_SPEC.md`), сайт подстраивается. Реализация в CRM — `crm/services/public.ts`, route handlers в `crm/app/public/`.
 
-Базовый контракт — бриф сайта §9. Ниже он же с тремя дополнениями, которые сайту уже понадобились (помечены **+**).
+**Ревизия 23.10.2026 (этап B)** — контракт сверен с моделью CRM, расхождения решены так (помечены **B**):
+
+- `productId` — uuid товара из CRM (не `red-classic`). `color` — поле `products.color` (`red`, `white`, `pink`, `yellow`, `purple`, `orange`), `type` — `products.tulip_type`.
+- `pickupMethod: "self"` ↔ `orders.pickup_method = self_pickup`; `pickupSlot` — строка слота сайта (`"08:00–12:00"`), CRM хранит **начало слота** в `orders.pickup_time` и в `GET /public/orders/{token}` отдаёт `pickup.slot` как `"08:00"`.
+- `prices.*.today` — цена за штуку при 100 % предоплаты на сегодня (Asia/Almaty). Если на сегодня правила нет (сезон закончился или ещё не начался) — последняя цена сетки, при пустой сетке `0`; `next` — следующий период сетки при 100 % или `null`.
+- `priceGrid` — для каждого правила `price_rules` и каждой точки 40 / 60 / 80 / 100, попадающей в полосу правила: `{ periodEnd: date_to, prepaymentPct, type, pricePerStem }`. На сайте период выбирается по `day <= periodEnd` (сетка должна быть без дыр с сегодняшнего дня).
+- `stock.status`: `many` при `available ≥ planned × stock_few_below_pct / 100` (настройка сезона, по умолчанию 30 %), `few` при `available > 0`, `none` при 0. `maxPacks = floor(available / pack_size)`; `available` — спека §9 (план + корректировки − брони − выдано), считается запросом, без кэша.
+- `season.id` — uuid сезона; `season.peakHoursFrom` — `settings.peak_hours_from`, может быть `""` (вечерних часов нет).
+- ТОО: в `clients` нет полей БИН и названия организации (спека §6) — `legalType = "too"` записывается в `orders.comment_client` строкой `ТОО «orgName», БИН bin` перед комментарием клиента.
+- `invoice.expiresAt` — `null` до этапа G (Kaspi): CRM отдаёт ожидающий счёт Kaspi (`payments.status = pending`, `method = kaspi_invoice`) с суммой.
+- `events[].type`: `created`, `confirmed` / `prepaid` / `ready` / `issued` / `expired` / `cancelled` (смены статуса), `invoice` (выставлен счёт), `paid` (оплата). Сайт показывает `created / confirmed / invoice / paid` из словаря, остальные — заголовком статуса.
+- Ссылка с предзаполнением ведёт на **форму заказа** `/tulpan/zakaz?c=TOKEN` (в C, когда каталог получит «+ / −», можно вернуть `/tulpan/sorta`). Токен — uuid в `conversations.prefill_token`, срок 30 дней от `prefill_token_at`. `items` в ответе prefill CRM пока не отдаёт.
+- `prefillToken` в `POST /public/orders` записывается в событие создания заказа; клиент заказа определяется по телефону (спека §9: телефон — идентичность клиента), переписка не переназначается.
+- Ошибки: `400 { error: "человеческий текст" }` — сайт показывает текст как есть (по-русски и в казахской версии); `429` — превышен лимит (5 заявок с номера и 20 с IP-адреса в час; сайт передаёт адрес посетителя в `X-Forwarded-For`); `401` — нет или неверный `X-Public-Secret`.
+- После успешного `POST /public/orders` сайт ведёт клиента на `/o/{token}` (страницу заказа), а не на `/tulpan/zakaz/gotovo`.
+
+## Доступ
+
+Все запросы — с сервера сайта с заголовком `X-Public-Secret: <CRM_PUBLIC_SECRET>` (одно значение в env сайта и CRM, `crm/deploy/.env`). Без него CRM отвечает `401`. Адрес CRM — `CRM_URL` (в compose `http://app:3001`, внутри сети Docker).
 
 ## GET /public/season/current
 
 ```ts
 {
   season: {
-    id: string;              // "2027"
+    id: string;              // uuid сезона
     name: string;
-    saleOpen: boolean;
+    saleOpen: boolean;       // seasons.status = open
     peakDate: string;        // "2027-03-08"
-    pickupFrom: string;      // + окно выдачи, seasons.pickup_from
-    pickupTo: string;        // + seasons.pickup_to
-    peakHoursFrom: string;   // + с этой даты выдача до 23:00, settings.peak_hours_from
+    pickupFrom: string;      // окно выдачи, seasons.pickup_from
+    pickupTo: string;        // seasons.pickup_to
+    peakHoursFrom: string;   // с этой даты выдача до 23:00, settings.peak_hours_from; "" = нет
   };
   asOf: string;              // ISO, момент расчёта «сегодня»
   prices: {
-    classic: { today: number; next: { from: string; price: number } | null };  // + next = null в последнем периоде
+    classic: { today: number; next: { from: string; price: number } | null };
     double:  { today: number; next: { from: string; price: number } | null };
   };
   priceGrid: { periodEnd: string; prepaymentPct: 40 | 60 | 80 | 100; type: "classic" | "double"; pricePerStem: number }[];
-  stock: { productId: string; color: string; type: "classic" | "double"; status: "many" | "few" | "none"; maxPacks?: number }[];
+  stock: { productId: string; color: string; type: "classic" | "double"; status: "many" | "few" | "none"; maxPacks: number }[];
 }
 ```
 
-- `prices.*.today` — цена за штуку при 100 % предоплаты на дату `asOf` (таймзона Asia/Almaty).
-- `priceGrid` — полосы предоплаты на сайте фиксированы: 40 / 60 / 80 / 100. Если в CRM шаг 10 %, отдайте значения для этих четырёх точек.
-- `maxPacks` нужен только калькулятору, чтобы остановить степпер. Публично число не показывается.
-- `productId` на сайте сейчас вида `red-classic`; подойдёт любой стабильный id.
+`404 { error }` — сезона нет.
 
 ## POST /public/orders
 
@@ -40,17 +55,20 @@
   items: { productId: string; packs: number }[];
   prepaymentPct: 40 | 60 | 80 | 100;
   pickupDate: string;            // YYYY-MM-DD внутри окна выдачи
-  pickupSlot: string;            // "08:00–12:00" … "21:00–23:00"
+  pickupSlot: string;            // "08:00–12:00" … "21:00–23:00" — в CRM уходит начало слота
   pickupMethod: "self" | "client_truck";
   storage: boolean;
-  client: { company: string; name: string; phone: string /* E.164 +7… */; legalType: "ip" | "too"; bin?: string; orgName?: string };
+  client: { company: string; name: string; phone: string /* +7… */; legalType: "ip" | "too"; bin?: string; orgName?: string };
   comment: string;
   source: "site";
+  prefillToken?: string;         // из ?c=TOKEN
 }
-// → { orderNumber, token, holdUntil, total, prepaymentAmount, pricesLockedAt: null }
+// → 200 { orderNumber, token, holdUntil, total, prepaymentAmount, pricesLockedAt: null }
+// → 400 { error } — минимум 120 шт, наличие, окно и слот выдачи, телефон, нет цены на сегодня, нет открытого сезона
+// → 429 { error } — лимит
 ```
 
-Сайт уже проверяет минимум 120 шт в сумме, наличие, окно и слот выдачи, телефон КЗ и БИН (12 цифр) для ТОО — CRM всё равно перепроверяет. `orgName` — **+**, для счёта на ТОО.
+Сайт проверяет то же самое до отправки, CRM — окончательно, в транзакции с блокировкой остатков (спека §9). Заказ создаётся с `created_by = client`, `channel = site`, статус `confirmed` с бронью на `hold_days` или `new` от `check_threshold_amount`; при нехватке остатка заказ **не создаётся** (клиентская форма, спека §9). Сразу после создания клиенту уходит `booking` через провайдер сообщений, Татьяне — строка в лог CRM (`docker compose logs app | grep '\[site\]'`; Telegram — этап H).
 
 ## GET /public/orders/{token}
 
@@ -58,43 +76,40 @@
 {
   orderNumber: string;
   status: "new" | "confirmed" | "prepaid" | "ready" | "issued" | "expired" | "cancelled";
-  holdUntil: string | null;
-  prepaymentPct: number;         // + показываем «Предоплата 60 %»
+  holdUntil: string | null;      // только для confirmed
+  prepaymentPct: number;
   items: { productId: string; color: string; type: string; packs: number; stems: number; pricePerStem: number; sum: number }[];
   total: number;
   paid: number;
   prepaymentDue: number;
-  invoice: { provider: "kaspi"; amount: number; expiresAt: string } | null;
-  pickup: { date: string; slot: string; method: "self" | "client_truck"; storage: boolean };
-  events: { at: string; type: string }[];   // сайт знает created / confirmed / invoice, остальные покажет после добавления в словарь
+  invoice: { provider: "kaspi"; amount: number; expiresAt: null } | null;
+  pickup: { date: string | null; slot: string; method: "self" | "client_truck"; storage: boolean };
+  events: { at: string; type: string }[];   // по порядку, см. список типов выше
+  asOf: string;                             // часы CRM — для «осталось N дней»
 }
 ```
 
-Тексты статусов — в `content/dict/*.ts` → `statuses`, по одному словарю на язык.
+Открытие страницы пересчитывает незафиксированный заказ по сетке на сегодня, как карточка в CRM. `404` — токена нет.
+
+## GET /public/prefill/{token}
+
+```ts
+// → 200 { client: { name: string; company: string; phone: string } }
+// → 404, если токен неизвестен или старше 30 дней: сайт молча показывает пустую форму
+```
+
+Токен выдаёт кнопка «Ссылка для заказа» в CRM (экран «Расчёт», под текстом ответа клиенту): она дописывает в текст `Оформить заказ на сайте: <SITE_URL>/tulpan/zakaz?c=TOKEN`, дальше «Скопировать» или «Отправить в WhatsApp».
 
 ## POST /public/leads, POST /public/designer-price
 
 ```ts
 { segment: "private" | "office" | "horeca"; phone: string; company?: string; message: string }
 { company: string; phone: string }
+// → 200 { ok: true } | 400 { error } | 429
 ```
 
-## GET /public/prefill/{token} — **+ ревизия 23.10.2026** (этап B)
+Отдельной таблицы лидов нет: CRM создаёт или находит клиента по телефону (`source = inbound_message`, `client_type`: private → `private`, office / horeca → `other`, дизайнер → `landscaper`) и дописывает в `clients.notes` строку с датой, сегментом, компанией и сообщением.
 
-Ссылка из WhatsApp `/tulpan/sorta?c=TOKEN`: токен выдаёт CRM (кнопка в карточке клиента или ассистент, спека §19) и хранит в `conversations.prefill_token`.
+## Свежесть данных
 
-```ts
-// → 200
-{ client: { name: string; company: string; phone: string }; items?: { productId: string; packs: number }[] }
-// → 404, если токен неизвестен или старше 30 дней: сайт молча показывает пустую форму
-```
-
-`POST /public/orders` принимает необязательный `prefillToken: string` — CRM привязывает заказ к клиенту и переписке, даже если клиент поправил телефон.
-
-## Свежесть данных — **+ ревизия 23.10.2026**
-
-`stock` должен быть актуальным: сайт кэширует `GET /public/season/current` не дольше 60 секунд и сбрасывает кэш после каждого `POST /public/orders`. CRM считает остатки запросом (спека §9), отдельного кэша на её стороне нет. Запросы сайта к CRM идут с сервера сайта с заголовком-секретом (`CRM_PUBLIC_SECRET`), чтобы `/public/*` не был открыт всему интернету.
-
-## Пока CRM нет
-
-Заявки и лиды уходят Татьяне сообщением в Telegram (`lib/notify.ts`, переменные в `.env.example`). Без переменных — только лог сервера.
+`GET /public/season/current` сайт кэширует не дольше 60 секунд (`lib/season.ts`: `"use cache"`, `cacheLife({ revalidate: 30, expire: 60 })`) и сбрасывает кэш тегом `season` после каждого `POST /public/orders`. Страница заказа и prefill не кэшируются. При сборке образа сайт к CRM не обращается: страницы с данными сезона рендерятся на запрос (`connection()` + `<Suspense>`).

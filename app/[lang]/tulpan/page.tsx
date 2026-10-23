@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Suspense } from "react";
 import { Icon } from "@/components/icons";
 import { OrderSteps } from "@/components/OrderSteps";
 import { Photo } from "@/components/Photo";
@@ -15,7 +16,15 @@ export async function generateMetadata() {
   return pageMeta("/tulpan", t.meta.tulpan.title, t.meta.tulpan.description);
 }
 
-export default async function TulpanPage() {
+export default function TulpanPage() {
+  return (
+    <Suspense fallback={null}>
+      <TulpanBody />
+    </Suspense>
+  );
+}
+
+async function TulpanBody() {
   const { t, href } = await getDict();
   const { season, asOf, prices, priceGrid, stock } = await getSeason();
   const today = almatyDay(new Date(asOf));

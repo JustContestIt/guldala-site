@@ -348,7 +348,6 @@ export const kz: Dict = {
   },
 
   order: {
-    demo: "Демонстрация: Татьяна WhatsApp-қа жіберетін тапсырыс беті осылай көрінеді.",
     hold: (iso: string, days: number) => `Бронь ${until(iso)} · ${days} күн қалды`,
     payNow: "Қазір төлеуге",
     invoice: "Kaspi шоты нөміріңізге жіберілді. 24 сағат ішінде төлеңіз.",
@@ -365,7 +364,7 @@ export const kz: Dict = {
     docInvoice: "Kaspi шоты — Kaspi.kz қосымшасында",
     docContract: "Шарт",
     historyTitle: "Тарих",
-    events: { created: "Өтінім қабылданды", confirmed: "Татьяна растады", invoice: "Kaspi шоты жіберілді" },
+    events: { created: "Өтінім қабылданды", confirmed: "Татьяна растады", invoice: "Kaspi шоты жіберілді", paid: "Төлем алынды" },
     write: "Татьянаға жазу",
     share: "Бөлісу",
     copied: "Сілтеме көшірілді",

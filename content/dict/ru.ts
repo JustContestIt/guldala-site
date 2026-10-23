@@ -333,7 +333,6 @@ export const ru = {
   },
 
   order: {
-    demo: "Демонстрация: так выглядит страница заказа, ссылку на которую Татьяна присылает в WhatsApp.",
     hold: (iso: string, days: number) => `Бронь до ${dm(iso)} · осталось ${days} ${plural(days, "день", "дня", "дней")}`,
     payNow: "К оплате сейчас",
     invoice: "Счёт Kaspi отправлен на ваш номер. Оплатите в течение 24 часов.",
@@ -350,7 +349,7 @@ export const ru = {
     docInvoice: "Счёт Kaspi — в приложении Kaspi.kz",
     docContract: "Договор",
     historyTitle: "История",
-    events: { created: "Заявка получена", confirmed: "Подтверждено Татьяной", invoice: "Выставлен счёт Kaspi" },
+    events: { created: "Заявка получена", confirmed: "Подтверждено Татьяной", invoice: "Выставлен счёт Kaspi", paid: "Оплата получена" },
     write: "Написать Татьяне",
     share: "Поделиться",
     copied: "Ссылка скопирована",

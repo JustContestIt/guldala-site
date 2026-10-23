@@ -1,5 +1,6 @@
 import { Suspense } from "react";
 import { getDict, pageMeta } from "@/lib/dict";
+import { getPrefill } from "@/lib/orders";
 import { getSeason } from "@/lib/season";
 import { Calculator } from "./Calculator";
 
@@ -21,11 +22,11 @@ export default async function ZakazPage({ searchParams }: PageProps<"/[lang]/tul
   );
 }
 
-// ?product=red-classic preselects a color coming from the catalog
+// ?product=<id> preselects a color coming from the catalog; ?c=TOKEN fills the contacts in from a WhatsApp link
 async function Loader({ searchParams }: { searchParams: PageProps<"/[lang]/tulpan/zakaz">["searchParams"] }) {
   const { lang, t } = await getDict();
-  const { product } = await searchParams;
-  const { season, asOf, priceGrid, stock } = await getSeason();
+  const { product, c } = await searchParams;
+  const [{ season, asOf, priceGrid, stock }, prefill] = await Promise.all([getSeason(), typeof c === "string" ? getPrefill(c).catch(() => null) : null]);
   const initial = stock.find((s) => s.productId === product && s.status !== "none")?.productId;
   const labels = Object.fromEntries(stock.map((s) => [s.productId, t.product(s.color, s.type)]));
   return (
@@ -36,6 +37,8 @@ async function Loader({ searchParams }: { searchParams: PageProps<"/[lang]/tulpa
       stockT={t.stock}
       labels={labels}
       initial={initial}
+      client={prefill?.client}
+      prefillToken={prefill ? (c as string) : undefined}
     />
   );
 }

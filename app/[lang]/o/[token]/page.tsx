@@ -1,17 +1,14 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { Suspense } from "react";
 import { Icon } from "@/components/icons";
 import { Photo } from "@/components/Photo";
 import { ButtonLink, Ph } from "@/components/ui";
 import { waLink } from "@/content/site";
 import { getDict } from "@/lib/dict";
 import { tenge, time } from "@/lib/format";
-import { getOrder } from "@/lib/orders";
+import { getOrder, type OrderStatus } from "@/lib/orders";
 import { ShareButton } from "./ShareButton";
-
-export function generateStaticParams() {
-  return [{ token: "demo" }];
-}
 
 export async function generateMetadata({ params }: PageProps<"/[lang]/o/[token]">): Promise<Metadata> {
   const { token } = await params;
@@ -20,7 +17,18 @@ export async function generateMetadata({ params }: PageProps<"/[lang]/o/[token]"
   return { title: order ? t.meta.order(order.orderNumber) : t.meta.notFound, robots: { index: false } };
 }
 
-export default async function OrderPage({ params }: PageProps<"/[lang]/o/[token]">) {
+// The order lives in the CRM and changes there: read on every visit, never at build time
+export default function OrderPage({ params }: PageProps<"/[lang]/o/[token]">) {
+  return (
+    <div className="shell max-w-3xl py-10 md:py-14">
+      <Suspense fallback={<div className="h-96 rounded-3xl bg-surface" />}>
+        <Order params={params} />
+      </Suspense>
+    </div>
+  );
+}
+
+async function Order({ params }: { params: PageProps<"/[lang]/o/[token]">["params"] }) {
   const { token } = await params;
   const order = await getOrder(token);
   if (!order) notFound();
@@ -28,13 +36,13 @@ export default async function OrderPage({ params }: PageProps<"/[lang]/o/[token]
   const status = t.statuses[order.status];
   const daysLeft = order.holdUntil ? Math.max(0, Math.ceil((Date.parse(order.holdUntil) - Date.parse(order.asOf)) / 86_400_000)) : 0;
   const when = (iso: string) => `${t.dayMonth(iso)}, ${time(iso)}`;
+  // an event is a step the site names, or an order status the CRM moved to
+  const eventLabel = (type: string) => t.order.events[type as keyof typeof t.order.events] ?? t.statuses[type as OrderStatus]?.title ?? type;
   const box = "rounded-2xl border border-line p-5";
 
   return (
-    <div className="shell max-w-3xl py-10 md:py-14">
-      <p className="rounded-xl bg-warn-bg px-4 py-2 text-sm text-warn">{t.order.demo}</p>
-
-      <section className="mt-6 rounded-3xl bg-surface p-6 sm:p-8">
+    <>
+      <section className="rounded-3xl bg-surface p-6 sm:p-8">
         <p className="text-sm text-muted">{t.meta.order(order.orderNumber)}</p>
         <h1 className="mt-1 text-3xl sm:text-4xl">{status.title}</h1>
         <p className="mt-2">{status.next}</p>
@@ -92,8 +100,8 @@ export default async function OrderPage({ params }: PageProps<"/[lang]/o/[token]
         <h2 className="text-lg">{t.order.historyTitle}</h2>
         <ol className="mt-2 grid gap-2 text-sm">
           {order.events.map((e) => (
-            <li key={e.at} className="flex justify-between gap-4">
-              <span>{t.order.events[e.type]}</span>
+            <li key={e.at + e.type} className="flex justify-between gap-4">
+              <span>{eventLabel(e.type)}</span>
               <time dateTime={e.at} className="text-muted">{when(e.at)}</time>
             </li>
           ))}
@@ -106,6 +114,6 @@ export default async function OrderPage({ params }: PageProps<"/[lang]/o/[token]
         </ButtonLink>
         <ShareButton label={t.order.share} copied={t.order.copied} title={t.meta.order(order.orderNumber)} />
       </div>
-    </div>
+    </>
   );
 }

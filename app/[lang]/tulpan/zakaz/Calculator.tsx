@@ -20,9 +20,12 @@ type Props = {
   stockT: Dict["stock"];
   labels: Record<string, string>;
   initial?: string;
+  // from ?c=TOKEN (a WhatsApp link): contacts the CRM already knows
+  client?: { company: string; name: string; phone: string };
+  prefillToken?: string;
 };
 
-export function Calculator({ lang, data, t, stockT, labels, initial }: Props) {
+export function Calculator({ lang, data, t, stockT, labels, initial, client, prefillToken }: Props) {
   const max = (id: string) => data.stock.find((s) => s.productId === id)?.maxPacks ?? 0;
   const [pct, setPct] = useState<PrepaymentPct>(100);
   const [packs, setPacks] = useState<Record<string, number>>(() => (initial ? { [initial]: Math.min(4, max(initial)) } : {}));
@@ -52,6 +55,7 @@ export function Calculator({ lang, data, t, stockT, labels, initial }: Props) {
       <input type="hidden" name="lang" value={lang} />
       <input type="hidden" name="pct" value={pct} />
       <input type="hidden" name="items" value={serializeItems(q.lines)} />
+      {prefillToken && <input type="hidden" name="c" value={prefillToken} />}
       <input type="text" name="website" tabIndex={-1} autoComplete="off" aria-hidden="true" className="hidden" />
 
       <div className="grid gap-8">
@@ -153,13 +157,13 @@ export function Calculator({ lang, data, t, stockT, labels, initial }: Props) {
         <fieldset className="grid gap-4 rounded-2xl border border-line p-5 sm:grid-cols-2">
           <legend className="px-1 text-lg font-semibold">{t.contactsTitle}</legend>
           <Field label={t.company}>
-            <input name="company" required maxLength={200} autoComplete="organization" className={inputCls} />
+            <input name="company" required maxLength={200} autoComplete="organization" defaultValue={client?.company} className={inputCls} />
           </Field>
           <Field label={t.name}>
-            <input name="name" required maxLength={200} autoComplete="name" className={inputCls} />
+            <input name="name" required maxLength={200} autoComplete="name" defaultValue={client?.name} className={inputCls} />
           </Field>
           <Field label={t.phone}>
-            <input name="phone" type="tel" required inputMode="tel" autoComplete="tel" placeholder="+7 7__ ___ __ __" className={inputCls} />
+            <input name="phone" type="tel" required inputMode="tel" autoComplete="tel" placeholder="+7 7__ ___ __ __" defaultValue={client?.phone} className={inputCls} />
           </Field>
           <fieldset className="grid gap-1.5 text-sm">
             <legend className="mb-1.5 font-medium">{t.legal}</legend>
@@ -215,9 +219,10 @@ export function Calculator({ lang, data, t, stockT, labels, initial }: Props) {
           ) : null}
         </p>
 
-        {state?.errors.length ? (
+        {state?.errors.length || state?.message ? (
           <div role="alert" className="mt-4 rounded-xl bg-up-bg p-3 text-sm text-up">
             <ul className="grid gap-1">
+              {state.message && <li>{state.message}</li>}
               {state.errors.map((e) => (
                 <li key={e}>
                   {e === "stock"

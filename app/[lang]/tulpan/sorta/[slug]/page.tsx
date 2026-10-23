@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import type { ReactNode } from "react";
+import { Suspense, type ReactNode } from "react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Icon } from "@/components/icons";
@@ -29,7 +29,14 @@ export default async function VarietyPage({ params }: PageProps<"/[lang]/tulpan/
   const { slug } = await params;
   const v = VARIETIES.find((x) => x.slug === slug);
   if (!v) notFound();
+  return (
+    <Suspense fallback={null}>
+      <VarietyBody v={v} />
+    </Suspense>
+  );
+}
 
+async function VarietyBody({ v }: { v: Variety }) {
   const { t, href } = await getDict();
   const { stock, prices } = await getSeason();
   const statusOf = (x: Variety) => stock.find((s) => s.color === x.color && s.type === x.type)?.status ?? "none";
