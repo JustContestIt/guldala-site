@@ -191,20 +191,6 @@ async function TulpanBody() {
           ))}
         </div>
       </section>
-
-      <section className="bg-night text-night-text">
-        <div className="shell grid items-center gap-6 py-12 md:grid-cols-2 md:py-16">
-          <div>
-            <p className="text-sm text-night-accent">Guldala Botanica</p>
-            <h2 className="mt-2 text-2xl text-white sm:text-3xl">{t.tulpan.botanicaTitle}</h2>
-            <p className="mt-3">{t.tulpan.botanicaText}</p>
-            <ButtonLink href={href("/botanica")} variant="light" className="mt-6">
-              {t.tulpan.botanicaCta} <Icon name="arrow" className="size-4" />
-            </ButtonLink>
-          </div>
-          <Photo label={t.photos.botanicaTeaser} ratio="3/2" dark />
-        </div>
-      </section>
     </>
   );
 }

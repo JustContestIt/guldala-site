@@ -31,7 +31,6 @@ export default async function ContactsPage() {
           <h2 className="mt-6 text-xl">{t.contacts.socialTitle}</h2>
           <ul className="mt-1 text-sm">
             <li><a href={instagramUrl(CONTACTS.instagramTulpan)} {...ext}><Icon name="instagram" className="size-4 text-accent" /> @{CONTACTS.instagramTulpan}</a></li>
-            <li><a href={instagramUrl(CONTACTS.instagramBotanica)} {...ext}><Icon name="instagram" className="size-4 text-accent" /> @{CONTACTS.instagramBotanica}</a></li>
             <li className="flex min-h-11 items-center gap-2"><Icon name="send" className="size-4 text-accent" /> Telegram: <Ph>{t.ph.telegram}</Ph></li>
           </ul>
         </section>

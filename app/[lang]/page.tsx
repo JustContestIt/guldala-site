@@ -43,27 +43,21 @@ async function HomeBody() {
         </div>
       </section>
 
-      <section className="shell grid gap-6 py-12 md:grid-cols-2 md:py-16">
-        <Link href={href("/tulpan")} className="group block">
+      <section className="shell py-12 md:py-16">
+        <Link href={href("/tulpan")} className="group grid items-center gap-6 md:grid-cols-2">
           <div className="relative">
             <Photo label={t.photos.homeTulpan} ratio="4/5" />
             <span className="absolute bottom-3 left-3 right-3 rounded-xl bg-white px-3 py-2 text-sm font-medium">
               {season.saleOpen ? t.home.badgeOpen(tenge(prices.classic.today)) : t.home.badgeClosed}
             </span>
           </div>
-          <h2 className="mt-4 text-2xl group-hover:text-accent">Guldala Tulpan</h2>
-          <p className="mt-1 text-muted">{t.home.tulpanText}</p>
-          <span className="mt-3 inline-flex items-center gap-2 font-semibold text-accent">
-            {t.home.tulpanCta} <Icon name="arrow" className="size-4" />
-          </span>
-        </Link>
-        <Link href={href("/botanica")} className="group block">
-          <Photo label={t.photos.homeBotanica} ratio="4/5" dark />
-          <h2 className="mt-4 text-2xl group-hover:text-accent">Guldala Botanica</h2>
-          <p className="mt-1 text-muted">{t.home.botanicaText}</p>
-          <span className="mt-3 inline-flex items-center gap-2 font-semibold text-accent">
-            {t.home.botanicaCta} <Icon name="arrow" className="size-4" />
-          </span>
+          <div>
+            <h2 className="text-2xl group-hover:text-accent">Guldala Tulpan</h2>
+            <p className="mt-1 text-muted">{t.home.tulpanText}</p>
+            <span className="mt-3 inline-flex items-center gap-2 font-semibold text-accent">
+              {t.home.tulpanCta} <Icon name="arrow" className="size-4" />
+            </span>
+          </div>
         </Link>
       </section>
 
@@ -131,11 +125,6 @@ async function HomeBody() {
             <li>
               <a href={instagramUrl(CONTACTS.instagramTulpan)} {...ext}>
                 <Icon name="instagram" className="size-4 text-accent" /> @{CONTACTS.instagramTulpan}
-              </a>
-            </li>
-            <li>
-              <a href={instagramUrl(CONTACTS.instagramBotanica)} {...ext}>
-                <Icon name="instagram" className="size-4 text-accent" /> @{CONTACTS.instagramBotanica}
               </a>
             </li>
           </ul>

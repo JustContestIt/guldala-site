@@ -9,9 +9,6 @@ const PATHS = [
   "/tulpan/sorta",
   ...VARIETIES.map((v) => `/tulpan/sorta/${v.slug}`),
   "/tulpan/zakaz",
-  "/botanica",
-  "/botanica/rasteniya",
-  "/botanica/proekty",
   "/o-nas",
   "/kontakty",
 ];

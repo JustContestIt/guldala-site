@@ -18,7 +18,6 @@ export async function Footer() {
           <ul className="grid gap-2 text-sm">
             <li><Link href={href("/tulpan")} className="hover:text-white">{t.footer.tulpan}</Link></li>
             <li><Link href={href("/tulpan/sorta")} className="hover:text-white">{t.nav.sorta}</Link></li>
-            <li><Link href={href("/botanica")} className="hover:text-white">Guldala Botanica</Link></li>
             <li><Link href={href("/o-nas")} className="hover:text-white">{t.nav.about}</Link></li>
             <li><Link href={href("/kontakty")} className="hover:text-white">{t.nav.contacts}</Link></li>
           </ul>
@@ -29,9 +28,6 @@ export async function Footer() {
           </a>
           <a href={instagramUrl(CONTACTS.instagramTulpan)} {...ext}>
             <Icon name="instagram" className="size-4" /> @{CONTACTS.instagramTulpan}
-          </a>
-          <a href={instagramUrl(CONTACTS.instagramBotanica)} {...ext}>
-            <Icon name="instagram" className="size-4" /> @{CONTACTS.instagramBotanica}
           </a>
           <p className="flex items-center gap-2">
             <Icon name="send" className="size-4" /> Telegram: <Ph>{t.ph.telegram}</Ph>

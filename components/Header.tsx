@@ -11,7 +11,6 @@ export async function Header() {
   const nav: [string, string][] = [
     [href("/tulpan"), t.nav.tulpan],
     [href("/tulpan/sorta"), t.nav.sorta],
-    [href("/botanica"), t.nav.botanica],
     [href("/o-nas"), t.nav.about],
     [href("/kontakty"), t.nav.contacts],
   ];

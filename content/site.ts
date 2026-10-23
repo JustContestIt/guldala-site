@@ -4,7 +4,6 @@ export const CONTACTS = {
   phone: "+7 777 100 66 67",
   waPhone: "77771006667",
   instagramTulpan: "guldala.tulpan.kz",
-  instagramBotanica: "guldala.botanica",
 };
 
 export const waLink = (text: string) =>
