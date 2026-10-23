@@ -1,13 +1,13 @@
 // Downloads variety photos from haakmanflowerbulbs.com.
-// Usage: node scripts/haakman-photos.mjs [slug ...]   (no slugs = every variety, ~430)
-// Output: scraped/haakman/<slug>/<n>.<ext> and scraped/haakman/varieties.json
+// Usage: node scripts/haakman-photos.mjs [--out dir] [name or slug ...]   (none = every variety, ~430)
+// Output: <dir>/<slug>/<n>.<ext> and <dir>/varieties.json, dir defaults to scraped/haakman
 // The photos are Haakman's: put them on the site only with their written permission (content/PHOTO-BRIEF.md)
 import { access, mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
+import { parseArgs } from "node:util";
 
 const BASE = "https://haakmanflowerbulbs.com/en/varieties/";
-const OUT = "scraped/haakman";
 const WORKERS = 4;
 
 const text = (html) =>
@@ -25,6 +25,16 @@ export function parseSlugs(html) {
   const az = html.match(/<details class="hk-az"[\s\S]*?<\/details>/)?.[0] ?? "";
   return [...new Set([...az.matchAll(/\/en\/varieties\/([a-z0-9-]+)\//g)].map((m) => m[1]))];
 }
+
+// Orders list names ("Mrs. Medvedeva"); WordPress slugs drop accents, dots and apostrophes
+export const toSlug = (name) =>
+  name
+    .normalize("NFD")
+    .replace(/\p{M}/gu, "")
+    .toLowerCase()
+    .replace(/['’.]/g, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "");
 
 export function parseVariety(html) {
   const name = text(html.match(/<h1 class="hk-single__title">([\s\S]*?)<\/h1>/)?.[1] ?? "");
@@ -47,8 +57,13 @@ async function get(url) {
 
 const exists = (file) => access(file).then(() => true, () => false);
 
-async function main(only) {
-  const slugs = only.length ? only : parseSlugs(await (await get(BASE)).text());
+async function main(names, out) {
+  const all = parseSlugs(await (await get(BASE)).text());
+  const wanted = names.length ? [...new Set(names.map(toSlug))] : all;
+  // Never fetch an unknown slug: WordPress redirects it to a similar variety ("strong" -> Strong Energy)
+  const missing = wanted.filter((slug) => !all.includes(slug));
+  if (missing.length) console.error(`not on haakman: ${missing.join(", ")}`);
+  const slugs = wanted.filter((slug) => all.includes(slug));
   const queue = [...slugs];
   const result = [];
   await Promise.all(
@@ -57,7 +72,7 @@ async function main(only) {
         const slug = queue.shift();
         try {
           const variety = parseVariety(await (await get(`${BASE}${slug}/`)).text());
-          const dir = path.join(OUT, slug);
+          const dir = path.join(out, slug);
           await mkdir(dir, { recursive: true });
           const files = [];
           for (const [i, url] of variety.photos.entries()) {
@@ -75,9 +90,15 @@ async function main(only) {
     }),
   );
   result.sort((a, b) => a.slug.localeCompare(b.slug));
-  await mkdir(OUT, { recursive: true });
-  await writeFile(path.join(OUT, "varieties.json"), JSON.stringify(result, null, 2));
-  console.log(`${result.length}/${slugs.length} varieties -> ${OUT}`);
+  await mkdir(out, { recursive: true });
+  await writeFile(path.join(out, "varieties.json"), JSON.stringify(result, null, 2));
+  console.log(`${result.length}/${slugs.length} varieties -> ${out}`);
 }
 
-if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) await main(process.argv.slice(2));
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+  const { values, positionals } = parseArgs({
+    allowPositionals: true,
+    options: { out: { type: "string", default: "scraped/haakman" } },
+  });
+  await main(positionals, values.out);
+}

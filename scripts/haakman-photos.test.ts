@@ -1,5 +1,15 @@
 import { expect, it } from "vitest";
-import { parseSlugs, parseVariety } from "./haakman-photos.mjs";
+import { parseSlugs, parseVariety, toSlug } from "./haakman-photos.mjs";
+
+it("turns order names into WordPress slugs", () => {
+  expect(["Mrs. Medvedeva", "Gander’s Rhapsody", "Crème Fraîche", "Energy4All", "avant-garde"].map(toSlug)).toEqual([
+    "mrs-medvedeva",
+    "ganders-rhapsody",
+    "creme-fraiche",
+    "energy4all",
+    "avant-garde",
+  ]);
+});
 
 it("takes variety slugs from the A–Z block only", () => {
   const html = `<a href="https://haakmanflowerbulbs.com/en/varieties/feed/">
