@@ -1,13 +1,14 @@
 import Link from "next/link";
 import { connection } from "next/server";
 import { Suspense } from "react";
+import rows from "@/assets/greenhouse-rows.jpg";
 import greenhouse from "@/assets/greenhouse-wide.jpg";
 import { GreenhouseMap } from "@/components/GreenhouseMap";
 import { Icon, type IconName } from "@/components/icons";
 import { OrderSteps } from "@/components/OrderSteps";
 import { Photo } from "@/components/Photo";
 import { ButtonLink, Ph, SectionTitle } from "@/components/ui";
-import { COLOR_HEX, COLOR_IDS, TULIP_TYPES } from "@/content/colors";
+import { SHADE_HEX, SHADES, TULIP_TYPES } from "@/content/colors";
 import { CONTACTS, instagramUrl, waLink } from "@/content/site";
 import { VARIETIES } from "@/content/varieties";
 import { getDict, pageMeta } from "@/lib/dict";
@@ -51,6 +52,7 @@ async function HomeBody() {
         <Photo
           label={t.photos.homeHero}
           src={greenhouse}
+          priority
           sizes="(max-width: 639px) 450vw, 100vw"
           className="h-[88svh] min-h-[600px] max-h-[800px] rounded-none [&_img]:object-[30%_50%] max-sm:[&_img]:origin-[30%_100%] max-sm:[&_img]:scale-150"
         />
@@ -96,10 +98,10 @@ async function HomeBody() {
         <div className="shell">
           <SectionTitle title={t.home.colorsTitle} lead={t.home.colorsLead} />
           <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
-            {COLOR_IDS.map((c) => (
+            {SHADES.map((c) => (
               <li key={c}>
                 <Link href={href(`/tulpan/sorta?color=${c}`)} className="group block">
-                  <Photo label={t.photos.colorCloseup(t.colors[c])} ratio="1/1" swatch={COLOR_HEX[c]} />
+                  <Photo label={t.photos.colorCloseup(t.colors[c])} ratio="1/1" swatch={SHADE_HEX[c]} />
                   <span className="mt-2 block font-semibold group-hover:text-accent">{t.colors[c]}</span>
                 </Link>
               </li>
@@ -142,10 +144,7 @@ async function HomeBody() {
       <section className="bg-surface py-12 md:py-16">
         <div className="shell">
           <SectionTitle title={t.home.whereTitle} lead={t.home.whereLead} />
-          <div className="grid gap-4 sm:grid-cols-2">
-            <Photo label={t.photos.greenhouse} ratio="3/2" />
-            <Photo label={t.photos.fridge} ratio="3/2" />
-          </div>
+          <Photo label={t.photos.greenhouse} src={rows} ratio="3/2" className="sm:aspect-[2/1]! [&_img]:object-[50%_60%]" />
           <div className="mt-6 grid gap-4 md:grid-cols-2">
             <div className="rounded-2xl bg-white p-6">
               <h3 className="text-lg">{t.home.qualityTitle}</h3>

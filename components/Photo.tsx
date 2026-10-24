@@ -7,6 +7,7 @@ export async function Photo({
   label,
   src,
   sizes = "100vw",
+  priority,
   ratio,
   swatch,
   dark,
@@ -15,6 +16,7 @@ export async function Photo({
   label: string;
   src?: StaticImageData;
   sizes?: string; // how wide the photo is drawn, so the browser picks a sharp enough file
+  priority?: boolean; // the first screen's photo: loaded at once
   ratio?: "4/5" | "3/2" | "1/1";
   swatch?: string;
   dark?: boolean;
@@ -25,8 +27,14 @@ export async function Photo({
   if (src)
     return (
       <div className={`relative overflow-hidden rounded-2xl bg-mint ${className}`} style={style}>
-        {/* shortcut: eager loading suits the one hero photo; drop priority when catalog photos arrive */}
-        <Image src={src} alt={label} fill priority sizes={sizes} placeholder="blur" className="object-cover" />
+        <Image src={src} alt={label} fill priority={priority} sizes={sizes} placeholder="blur" className="object-cover" />
+        {/* watermark over the whole photo: a right-click or long-press hits it, not the image, so no casual "save image"; top-right since hero cards cover the bottom */}
+        <span
+          aria-hidden="true"
+          className="absolute inset-0 flex items-start justify-end p-3 text-sm font-semibold text-white/75 select-none [text-shadow:0_1px_4px_rgb(0_0_0/0.6)] sm:p-4"
+        >
+          guldala.tulpan
+        </span>
       </div>
     );
   return (

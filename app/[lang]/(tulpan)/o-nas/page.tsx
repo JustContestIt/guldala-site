@@ -1,6 +1,12 @@
+import rows from "@/assets/greenhouse-rows.jpg";
+import packs from "@/assets/packs.jpg";
+import planting from "@/assets/planting.jpg";
 import { Photo } from "@/components/Photo";
 import { ButtonLink, Ph, SectionTitle } from "@/components/ui";
 import { getDict, pageMeta } from "@/lib/dict";
+
+// Photos in the order of t.photos.gallery; the rest are still placeholders
+const GALLERY = [planting, undefined, packs, undefined];
 
 export async function generateMetadata() {
   const { t } = await getDict();
@@ -24,28 +30,16 @@ export default async function AboutPage() {
             {t.home.ctaSorts}
           </ButtonLink>
         </div>
-        <Photo label={t.photos.aboutHero} ratio="4/5" />
+        <Photo label={t.photos.aboutHero} src={rows} ratio="4/5" priority sizes="(min-width: 768px) 50vw, 100vw" />
       </div>
 
       <section className="mt-16">
         <SectionTitle title={t.about.galleryTitle} />
         <ul className="grid grid-cols-2 gap-3 md:grid-cols-4">
-          {t.photos.gallery.map((g) => (
-            <li key={g}><Photo label={g} ratio="1/1" /></li>
+          {t.photos.gallery.map((g, i) => (
+            <li key={g}><Photo label={g} src={GALLERY[i]} ratio="1/1" sizes="(min-width: 768px) 25vw, 50vw" /></li>
           ))}
         </ul>
-      </section>
-
-      <section className="mt-16">
-        <SectionTitle title={t.about.calendarTitle} />
-        <ol className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {t.about.calendar.map((c) => (
-            <li key={c.when} className="rounded-2xl bg-surface p-5">
-              <p className="font-display text-xl font-extrabold">{c.when}</p>
-              <p className="mt-1 text-muted">{c.what}</p>
-            </li>
-          ))}
-        </ol>
       </section>
 
       <section className="mt-16 rounded-2xl border border-line p-6">

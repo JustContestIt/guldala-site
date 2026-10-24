@@ -1,4 +1,6 @@
 import Link from "next/link";
+import rows from "@/assets/greenhouse-rows.jpg";
+import packs from "@/assets/packs.jpg";
 import { Suspense } from "react";
 import { Icon } from "@/components/icons";
 import { OrderSteps } from "@/components/OrderSteps";
@@ -36,7 +38,13 @@ async function TulpanBody() {
   return (
     <>
       <section className="relative">
-        <Photo label={t.photos.tulpanHero} className="h-[56svh] min-h-[420px] max-h-[600px] rounded-none" />
+        <Photo
+          label={t.photos.tulpanHero}
+          src={rows}
+          priority
+          sizes="(max-width: 639px) 200vw, 100vw"
+          className="h-[56svh] min-h-[420px] max-h-[600px] rounded-none [&_img]:object-[50%_60%] max-sm:[&_img]:origin-[50%_87%] max-sm:[&_img]:scale-200"
+        />
         <div className="absolute inset-x-0 bottom-0">
           <div className="shell pb-8">
             <div className="max-w-xl rounded-3xl bg-white p-6 sm:p-8">
@@ -117,7 +125,14 @@ async function TulpanBody() {
           {stock.map((s) => (
             <li key={s.productId} className="w-[62%] shrink-0 snap-start sm:w-[34%] lg:w-[23%]">
               <Link href={href(`/tulpan/sorta?color=${shadesOf(s).join(",") || s.color}&type=${s.type}`)} className="group block">
-                <Photo label={t.photos.pack(t.product(s.color, s.type))} ratio="4/5" swatch={COLOR_HEX[s.color]} />
+                {/* the only pack photo so far: red classics */}
+                <Photo
+                  label={t.photos.pack(t.product(s.color, s.type))}
+                  src={s.color === "red" && s.type === "classic" ? packs : undefined}
+                  ratio="4/5"
+                  swatch={COLOR_HEX[s.color]}
+                  sizes="(min-width: 1024px) 23vw, (min-width: 640px) 34vw, 62vw"
+                />
                 <span className="mt-3 block font-semibold group-hover:text-accent">{t.product(s.color, s.type)}</span>
                 <span className="mt-1 flex flex-wrap items-center gap-2 text-sm text-muted">
                   <StockBadge status={s.status} t={t.stock} /> {t.fromPerStem(tenge(prices[s.type].today))}
