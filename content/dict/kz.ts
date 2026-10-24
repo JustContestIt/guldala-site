@@ -262,6 +262,7 @@ export const kz: Dict = {
     note: "Тапсырысты түс бойынша қабылдаймыз. Түстің ішіндегі сорт өзгеше болуы мүмкін — ауыстырсақ, алдын ала ескертеміз.",
     ask: "WhatsApp-та сұрау",
     similar: "Ұқсас сорттар",
+    photoCredit: "Фото: Haakman Flowerbulbs",
   },
 
   calc: {

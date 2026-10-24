@@ -8,7 +8,6 @@ export type Variety = {
   color: ColorId; // the stock line
   shades: Shade[]; // the flower's own colors, main first; two of them = a two-tone variety
   type: TulipType;
-  photos: string[];
   height?: string; // plant height in cm from the bulb exporters, "40–45"
   vaseLife?: number;
   description: Record<Lang, string>;
@@ -20,7 +19,7 @@ export type Variety = {
 // Tatiana confirms the grouping.
 const v = (slug: string, name: string, shades: Shade[], type: TulipType, height: string | undefined, ru: string, kz: string): Variety => {
   const [main] = shades;
-  return { slug, name, color: main === "cream" ? "white" : main, shades, type, height, photos: [], description: { ru, kz } };
+  return { slug, name, color: main === "cream" ? "white" : main, shades, type, height, description: { ru, kz } };
 };
 
 export const VARIETIES: Variety[] = [

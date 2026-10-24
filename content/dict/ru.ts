@@ -247,6 +247,7 @@ export const ru = {
     note: "Заказ принимаем по цвету. Сорт внутри цвета может отличаться — если заменим, предупредим заранее.",
     ask: "Спросить в WhatsApp",
     similar: "Похожие сорта",
+    photoCredit: "Фото: Haakman Flowerbulbs",
   },
 
   // Plain strings with {placeholders}: handed to the client calculator

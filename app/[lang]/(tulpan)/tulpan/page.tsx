@@ -8,6 +8,7 @@ import { Photo } from "@/components/Photo";
 import { ButtonLink, SectionTitle, StockBadge } from "@/components/ui";
 import { COLOR_HEX, TULIP_TYPES } from "@/content/colors";
 import { waLink } from "@/content/site";
+import { groupPhoto } from "@/content/variety-photos";
 import { shadesOf } from "@/content/varieties";
 import { getDict, pageMeta } from "@/lib/dict";
 import { tenge } from "@/lib/format";
@@ -125,10 +126,10 @@ async function TulpanBody() {
           {stock.map((s) => (
             <li key={s.productId} className="w-[62%] shrink-0 snap-start sm:w-[34%] lg:w-[23%]">
               <Link href={href(`/tulpan/sorta?color=${shadesOf(s).join(",") || s.color}&type=${s.type}`)} className="group block">
-                {/* the only pack photo so far: red classics */}
+                {/* our own pack photo for red classics; other lines show a variety's field shot (its second photo) */}
                 <Photo
                   label={t.photos.pack(t.product(s.color, s.type))}
-                  src={s.color === "red" && s.type === "classic" ? packs : undefined}
+                  src={s.color === "red" && s.type === "classic" ? packs : groupPhoto((v) => v.color === s.color && v.type === s.type, 1)}
                   ratio="4/5"
                   swatch={COLOR_HEX[s.color]}
                   sizes="(min-width: 1024px) 23vw, (min-width: 640px) 34vw, 62vw"

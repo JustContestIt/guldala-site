@@ -1,5 +1,7 @@
+import Image from "next/image";
 import Link from "next/link";
 import { SHADE_HEX } from "@/content/colors";
+import { VARIETY_PHOTOS } from "@/content/variety-photos";
 import { groupOf, type Variety } from "@/content/varieties";
 import { getDict } from "@/lib/dict";
 import type { StockStatus } from "@/lib/season";
@@ -14,10 +16,18 @@ type Props = { v: Variety; status: StockStatus; max: number };
 export async function VarietyCard({ v, status, max }: Props) {
   const { t, href } = await getDict();
   const page = href(`/tulpan/sorta/${v.slug}`);
+  const [photo] = VARIETY_PHOTOS[v.slug] ?? [];
   return (
     <article className="flex h-full flex-col overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-black/5">
       <Link href={page} tabIndex={-1} aria-hidden="true">
-        <Photo label={t.photos.varietyCard} ratio="1/1" swatch={SHADE_HEX[v.shades[0]]} className="rounded-none!" />
+        <Photo
+          label={photo ? v.name : t.photos.varietyCard}
+          src={photo}
+          ratio="1/1"
+          swatch={SHADE_HEX[v.shades[0]]}
+          sizes="(min-width: 1024px) 25vw, (min-width: 768px) 33vw, (min-width: 640px) 50vw, 100vw"
+          className="rounded-none!"
+        />
       </Link>
       <div className="flex flex-1 flex-col p-4">
         <h3 className="text-lg leading-snug">
@@ -49,10 +59,11 @@ export async function VarietyCard({ v, status, max }: Props) {
 export async function VarietyRow({ v, status, max }: Props) {
   const { t, href } = await getDict();
   const page = href(`/tulpan/sorta/${v.slug}`);
+  const [photo] = VARIETY_PHOTOS[v.slug] ?? [];
   return (
     <article className="flex flex-wrap items-center gap-3 rounded-2xl bg-white p-3 shadow-sm ring-1 ring-black/5">
-      <Link href={page} tabIndex={-1} aria-hidden="true" className="grid size-14 shrink-0 place-items-center rounded-xl bg-mint">
-        <ColorDot hex={SHADE_HEX[v.shades[0]]} className="size-6" />
+      <Link href={page} tabIndex={-1} aria-hidden="true" className="relative grid size-14 shrink-0 place-items-center overflow-hidden rounded-xl bg-mint">
+        {photo ? <Image src={photo} alt="" fill sizes="56px" className="object-cover" /> : <ColorDot hex={SHADE_HEX[v.shades[0]]} className="size-6" />}
       </Link>
       <div className="min-w-0 flex-1 basis-40">
         <h3 className="text-base leading-snug">

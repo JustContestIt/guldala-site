@@ -10,6 +10,7 @@ import { Photo } from "@/components/Photo";
 import { ButtonLink, Ph, SectionTitle } from "@/components/ui";
 import { SHADE_HEX, SHADES, TULIP_TYPES } from "@/content/colors";
 import { CONTACTS, instagramUrl, waLink } from "@/content/site";
+import { groupPhoto } from "@/content/variety-photos";
 import { VARIETIES } from "@/content/varieties";
 import { getDict, pageMeta } from "@/lib/dict";
 import { tenge } from "@/lib/format";
@@ -101,14 +102,25 @@ async function HomeBody() {
             {SHADES.map((c) => (
               <li key={c}>
                 <Link href={href(`/tulpan/sorta?color=${c}`)} className="group block">
-                  <Photo label={t.photos.colorCloseup(t.colors[c])} ratio="1/1" swatch={SHADE_HEX[c]} />
+                  <Photo
+                    label={t.photos.colorCloseup(t.colors[c])}
+                    src={groupPhoto((v) => v.shades[0] === c)}
+                    ratio="1/1"
+                    swatch={SHADE_HEX[c]}
+                    sizes="(min-width: 1024px) 25vw, (min-width: 640px) 33vw, 50vw"
+                  />
                   <span className="mt-2 block font-semibold group-hover:text-accent">{t.colors[c]}</span>
                 </Link>
               </li>
             ))}
             <li>
               <Link href={href("/tulpan/sorta?type=double")} className="group block">
-                <Photo label={t.photos.doublesCloseup} ratio="1/1" />
+                <Photo
+                  label={t.photos.doublesCloseup}
+                  src={groupPhoto((v) => v.type === "double")}
+                  ratio="1/1"
+                  sizes="(min-width: 1024px) 25vw, (min-width: 640px) 33vw, 50vw"
+                />
                 <span className="mt-2 block font-semibold group-hover:text-accent">{t.home.doubles}</span>
               </Link>
             </li>
