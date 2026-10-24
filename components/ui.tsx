@@ -38,6 +38,7 @@ const VARIANTS = {
   primary: "bg-accent text-white hover:bg-accent-dark",
   secondary: "border border-line bg-white text-ink hover:bg-surface",
   light: "bg-white text-ink hover:bg-mint",
+  soft: "bg-mint text-accent-dark hover:bg-line",
 };
 
 export function ButtonLink({

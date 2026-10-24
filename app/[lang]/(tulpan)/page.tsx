@@ -56,10 +56,13 @@ async function HomeBody() {
               <Suspense fallback={null}>
                 <TodayPrice />
               </Suspense>
+              {/* one row on a phone too: a second row made the card cover more of the photo; under 380 px WhatsApp is the icon only */}
               <div className="mt-5 flex flex-wrap gap-3">
-                <ButtonLink href={href("/tulpan/sorta")}>{t.home.ctaSorts}</ButtonLink>
-                <ButtonLink href={waLink(t.wa.tulips)} variant="secondary">
-                  <Icon name="chat" /> {t.wa.button}
+                <ButtonLink href={href("/tulpan/sorta")} className="flex-1 whitespace-nowrap sm:flex-none">
+                  {t.home.ctaSorts}
+                </ButtonLink>
+                <ButtonLink href={waLink(t.wa.tulips)} variant="soft">
+                  <Icon name="chat" /> <span className="max-[379px]:sr-only">{t.wa.short}</span>
                 </ButtonLink>
               </div>
             </div>
