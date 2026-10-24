@@ -62,7 +62,7 @@ async function HomeBody() {
         </div>
       </section>
 
-      <section className="shell pb-12 md:pb-16">
+      <section className="shell py-12 md:py-16">
         <SectionTitle title={t.home.howTitle} lead={t.home.howLead} />
         <OrderSteps />
         <div className="mt-6 flex flex-wrap gap-3">
