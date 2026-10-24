@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { startTransition, useActionState, useState, type FormEvent } from "react";
 import { Icon } from "@/components/icons";
+import { PhoneInput } from "@/components/PhoneInput";
 import { PickStepper, usePicks } from "@/components/Picks";
 import { ColorDot, Field, inputCls } from "@/components/ui";
 import { COLOR_HEX } from "@/content/colors";
@@ -36,10 +37,20 @@ export function Checkout({ lang, data, t, labels, catalogHref, client, prefillTo
   const [legal, setLegal] = useState<"ip" | "too" | "person">("ip");
   const [storage, setStorage] = useState(false);
   const [state, action, pending] = useActionState(submitOrder, null);
-  // Submit by hand: <form action> would reset every field even when the server only returns validation errors
+  const [checked, setChecked] = useState(false);
+  // Submit by hand: <form action> would reset every field even when the server only returns validation errors.
+  // The browser's own bubbles are off (noValidate): empty or wrong fields turn red with a line under them, the first one in view
   const submit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    const fd = new FormData(e.currentTarget);
+    const form = e.currentTarget;
+    setChecked(true);
+    const bad = form.querySelector<HTMLElement>("input:invalid, select:invalid, textarea:invalid");
+    if (bad) {
+      bad.scrollIntoView({ block: "center" });
+      bad.focus({ preventScroll: true });
+      return;
+    }
+    const fd = new FormData(form);
     startTransition(() => action(fd));
   };
 
@@ -57,7 +68,7 @@ export function Checkout({ lang, data, t, labels, catalogHref, client, prefillTo
   const double = price("double");
 
   return (
-    <form onSubmit={submit} className="mt-8 grid gap-8 lg:grid-cols-[1fr_22rem] lg:items-start">
+    <form onSubmit={submit} noValidate data-checked={checked || undefined} className="mt-8 grid gap-8 lg:grid-cols-[1fr_22rem] lg:items-start">
       <input type="hidden" name="lang" value={lang} />
       <input type="hidden" name="pct" value={pct} />
       <input type="hidden" name="picks" value={serializePicks(Object.fromEntries(chosen.map((v) => [v.slug, picks[v.slug]])))} />
@@ -130,10 +141,10 @@ export function Checkout({ lang, data, t, labels, catalogHref, client, prefillTo
 
         <fieldset className="grid gap-4 rounded-2xl border border-line p-5 sm:grid-cols-2">
           <legend className="px-1 text-lg font-semibold">{t.pickupTitle}</legend>
-          <Field label={t.date} hint={t.dateHint}>
+          <Field label={t.date} hint={t.dateHint} error={t.errors.date}>
             <input type="date" name="date" required min={data.season.pickupFrom} max={data.season.pickupTo} value={date} onChange={(e) => setDate(e.target.value)} className={inputCls} />
           </Field>
-          <Field label={t.slot}>
+          <Field label={t.slot} error={t.errors.slot}>
             <select name="slot" required disabled={!slots.length} className={inputCls} value={slots.includes(slot) ? slot : ""} onChange={(e) => setSlot(e.target.value)}>
               <option value="" disabled>{slots.length ? "—" : t.slotFirst}</option>
               {slots.map((s) => (
@@ -165,14 +176,14 @@ export function Checkout({ lang, data, t, labels, catalogHref, client, prefillTo
 
         <fieldset className="grid gap-4 rounded-2xl border border-line p-5 sm:grid-cols-2">
           <legend className="px-1 text-lg font-semibold">{t.contactsTitle}</legend>
-          <Field label={legal === "person" ? t.companyOptional : t.company}>
+          <Field label={legal === "person" ? t.companyOptional : t.company} error={legal === "person" ? undefined : t.errors.company}>
             <input name="company" required={legal !== "person"} maxLength={200} autoComplete="organization" defaultValue={client?.company} className={inputCls} />
           </Field>
-          <Field label={t.name}>
+          <Field label={t.name} error={t.errors.name}>
             <input name="name" required maxLength={200} autoComplete="name" defaultValue={client?.name} className={inputCls} />
           </Field>
-          <Field label={t.phone}>
-            <input name="phone" type="tel" required inputMode="tel" autoComplete="tel" placeholder="+7 7__ ___ __ __" defaultValue={client?.phone} className={inputCls} />
+          <Field label={t.phone} error={t.errors.phone}>
+            <PhoneInput defaultValue={client?.phone} />
           </Field>
           <fieldset className="grid gap-1.5 text-sm">
             <legend className="mb-1.5 font-medium">{t.legal}</legend>
@@ -187,10 +198,10 @@ export function Checkout({ lang, data, t, labels, catalogHref, client, prefillTo
           </fieldset>
           {legal === "too" && (
             <>
-              <Field label={t.bin}>
+              <Field label={t.bin} error={t.errors.bin}>
                 <input name="bin" required inputMode="numeric" pattern="\d{12}" maxLength={12} className={inputCls} />
               </Field>
-              <Field label={t.org}>
+              <Field label={t.org} error={t.errors.org}>
                 <input name="org" required maxLength={200} className={inputCls} />
               </Field>
             </>

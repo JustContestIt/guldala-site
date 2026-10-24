@@ -1,6 +1,7 @@
 "use client";
 
 import { startTransition, useActionState, type FormEvent } from "react";
+import { PhoneInput } from "@/components/PhoneInput";
 import { Field, inputCls } from "@/components/ui";
 import type { Dict } from "@/content/dict/ru";
 import { submitLead } from "./actions";
@@ -46,7 +47,7 @@ export function LeadForm({
         <input name="company" required={kind === "designer"} maxLength={200} autoComplete="organization" className={inputCls} />
       </Field>
       <Field label={t.phone}>
-        <input name="phone" type="tel" required inputMode="tel" autoComplete="tel" placeholder="+7 7__ ___ __ __" className={inputCls} />
+        <PhoneInput />
       </Field>
       {kind === "lead" && (
         <Field label={t.message}>

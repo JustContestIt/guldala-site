@@ -73,16 +73,21 @@ export function SectionTitle({ title, lead, dark }: { title: string; lead?: Reac
   );
 }
 
-// Label + control stacked; used by the calculator and Botanica forms
-export function Field({ label, children, hint }: { label: string; children: ReactNode; hint?: string }) {
+// Label + control stacked; used by the calculator and Botanica forms.
+// error: the field is required (a star by the label); the text shows under it once a form with data-checked holds it empty or wrong
+export function Field({ label, children, hint, error }: { label: string; children: ReactNode; hint?: string; error?: string }) {
   return (
-    <label className="grid gap-1.5 text-sm">
-      <span className="font-medium">{label}</span>
+    <label className="group/field grid gap-1.5 text-sm">
+      <span className="font-medium">
+        {label}
+        {error && <span aria-hidden="true" className="text-up"> *</span>}
+      </span>
       {children}
       {hint && <span className="text-xs text-muted">{hint}</span>}
+      {error && <span className="hidden text-xs font-medium text-up in-data-checked:group-has-invalid/field:block">{error}</span>}
     </label>
   );
 }
 
 export const inputCls =
-  "min-h-11 w-full rounded-xl border border-line bg-white px-3 text-base text-ink outline-none focus:border-accent focus:ring-2 focus:ring-accent/25";
+  "min-h-11 w-full rounded-xl border border-line bg-white px-3 text-base text-ink outline-none focus:border-accent focus:ring-2 focus:ring-accent/25 in-data-checked:invalid:border-up in-data-checked:invalid:bg-up-bg";
