@@ -1,15 +1,15 @@
-import Link from "next/link";
-import { Suspense, type ReactNode } from "react";
+import { Suspense } from "react";
+import { Catalog, type CatalogItem } from "@/components/Catalog";
+import { Photo } from "@/components/Photo";
 import { OrderBar } from "@/components/Picks";
-import { ColorDot, Ph } from "@/components/ui";
-import { VarietyCard } from "@/components/VarietyCard";
-import { COLOR_HEX, COLOR_IDS, TULIP_TYPES, type ColorId, type TulipType } from "@/content/colors";
+import { Ph } from "@/components/ui";
+import { VarietyCard, VarietyRow } from "@/components/VarietyCard";
+import { VarietyInfo } from "@/components/VarietyInfo";
+import { COLOR_HEX } from "@/content/colors";
 import { VARIETIES } from "@/content/varieties";
 import { getDict, pageMeta } from "@/lib/dict";
 import { isToken } from "@/lib/orders";
 import { getSeason } from "@/lib/season";
-
-type Filters = { color?: ColorId; type?: TulipType; stock?: "1" };
 
 export async function generateMetadata() {
   const { t } = await getDict();
@@ -19,113 +19,59 @@ export async function generateMetadata() {
 export default async function SortaPage({ searchParams }: PageProps<"/[lang]/tulpan/sorta">) {
   const { t } = await getDict();
   return (
-    <div className="shell pt-10 pb-28 md:pt-14">
-      <h1 className="text-3xl sm:text-4xl">{t.sorta.h1}</h1>
-      <p className="mt-2 max-w-2xl text-muted">
-        {t.sorta.lead(VARIETIES.length)} <Ph>{t.ph.varieties}</Ph>
-      </p>
-      <Suspense fallback={<p className="py-20 text-muted">{t.sorta.loading}</p>}>
-        <Catalog searchParams={searchParams} />
+    <div className="bg-surface pb-28">
+      <div className="shell pt-10 pb-2 md:pt-14">
+        <h1 className="text-3xl sm:text-4xl">{t.sorta.h1}</h1>
+        <p className="mt-2 max-w-2xl text-muted">
+          {t.sorta.lead(VARIETIES.length)} <Ph>{t.ph.varieties}</Ph>
+        </p>
+      </div>
+      <Suspense fallback={<p className="shell py-20 text-muted">{t.sorta.loading}</p>}>
+        <Varieties searchParams={searchParams} />
       </Suspense>
     </div>
   );
 }
 
-async function Catalog({ searchParams }: { searchParams: PageProps<"/[lang]/tulpan/sorta">["searchParams"] }) {
-  const { t, href: local } = await getDict();
+// Every variety is rendered here as a card, a list row and a window; the browser filters them without asking the server
+async function Varieties({ searchParams }: { searchParams: PageProps<"/[lang]/tulpan/sorta">["searchParams"] }) {
+  const { t, href } = await getDict();
   const sp = await searchParams;
   const token = typeof sp.c === "string" && isToken(sp.c) ? sp.c : undefined;
-  // Query string is user input: keep only known values
-  const f: Filters = {
-    color: COLOR_IDS.find((c) => c === sp.color),
-    type: TULIP_TYPES.find((x) => x === sp.type),
-    stock: sp.stock === "1" ? "1" : undefined,
-  };
-  const { asOf, priceGrid, stock } = await getSeason();
-  const line = (color: ColorId, type: TulipType) => stock.find((s) => s.color === color && s.type === type);
-  const statusOf = (color: ColorId, type: TulipType) => line(color, type)?.status ?? "none";
-
-  const items = VARIETIES.filter(
-    (v) =>
-      (!f.color || v.color === f.color) &&
-      (!f.type || v.type === f.type) &&
-      (!f.stock || statusOf(v.color, v.type) !== "none"),
-  );
-
-  const base = local("/tulpan/sorta");
-  const href = (patch: Filters) => {
-    const q = new URLSearchParams(Object.entries({ ...f, ...patch }).filter(([, v]) => v) as [string, string][]);
-    return q.size ? `${base}?${q}` : base;
-  };
-
+  const { asOf, priceGrid, stock, prices } = await getSeason();
+  const items: CatalogItem[] = VARIETIES.map((v) => {
+    const line = stock.find((s) => s.color === v.color && s.type === v.type);
+    const p = { v, status: line?.status ?? "none", max: line?.maxPacks ?? 0 };
+    return {
+      slug: v.slug,
+      name: v.name,
+      text: `${v.name} ${t.colors[v.color]} ${t.types[v.type]}`.toLowerCase(),
+      color: v.color,
+      type: v.type,
+      inStock: p.status !== "none",
+      card: <VarietyCard {...p} />,
+      row: <VarietyRow {...p} />,
+      detail: (
+        <>
+          <Photo label={t.photos.bud} ratio="1/1" swatch={COLOR_HEX[v.color]} />
+          <h2 className="mt-5 text-2xl">{v.name}</h2>
+          <VarietyInfo {...p} price={prices[v.type].today} />
+        </>
+      ),
+    };
+  });
+  const n = Array.from({ length: items.length + 1 }, (_, i) => i);
   return (
     <>
-      <div className="mt-8 grid gap-4 border-y border-line py-5">
-        <ChipRow label={t.sorta.color}>
-          <Chip href={href({ color: undefined })} active={!f.color}>{t.sorta.all}</Chip>
-          {COLOR_IDS.map((c) => (
-            <Chip key={c} href={href({ color: c })} active={f.color === c}>
-              <ColorDot hex={COLOR_HEX[c]} /> {t.colors[c]}
-            </Chip>
-          ))}
-        </ChipRow>
-        <ChipRow label={t.sorta.type}>
-          <Chip href={href({ type: undefined })} active={!f.type}>{t.sorta.all}</Chip>
-          {TULIP_TYPES.map((x) => (
-            <Chip key={x} href={href({ type: x })} active={f.type === x}>{t.types[x]}</Chip>
-          ))}
-          <Chip href={href({ stock: f.stock ? undefined : "1" })} active={!!f.stock}>{t.sorta.inStock}</Chip>
-        </ChipRow>
-      </div>
-
-      <p className="mt-6 text-sm text-muted" aria-live="polite">
-        {t.sorta.count(items.length)}
-        {(f.color || f.type || f.stock) && (
-          <>
-            {" · "}
-            <Link href={base} scroll={false} className="text-accent underline underline-offset-2">
-              {t.sorta.reset}
-            </Link>
-          </>
-        )}
-      </p>
-
-      {items.length ? (
-        <ul className="mt-4 grid grid-cols-2 gap-x-4 gap-y-8 md:grid-cols-3 lg:grid-cols-4">
-          {items.map((v) => (
-            <li key={v.slug}>
-              <VarietyCard v={v} status={statusOf(v.color, v.type)} max={line(v.color, v.type)?.maxPacks ?? 0} />
-            </li>
-          ))}
-        </ul>
-      ) : (
-        <p className="mt-10 rounded-2xl bg-surface p-8 text-center text-muted">{t.sorta.empty}</p>
-      )}
-      <OrderBar data={{ asOf, priceGrid, stock }} href={local("/tulpan/zakaz")} token={token} t={t.calc.bar} />
+      <Catalog
+        items={items}
+        counts={n.map(t.sorta.count)}
+        shows={n.map(t.sorta.show)}
+        t={t.sorta.ui}
+        colors={t.colors}
+        types={t.types}
+      />
+      <OrderBar data={{ asOf, priceGrid, stock }} href={href("/tulpan/zakaz")} token={token} t={t.calc.bar} />
     </>
-  );
-}
-
-function ChipRow({ label, children }: { label: string; children: ReactNode }) {
-  return (
-    <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
-      <span className="w-14 shrink-0 text-sm text-muted">{label}</span>
-      <div className="flex flex-wrap gap-2">{children}</div>
-    </div>
-  );
-}
-
-function Chip({ href, active, children }: { href: string; active: boolean; children: ReactNode }) {
-  return (
-    <Link
-      href={href}
-      scroll={false}
-      aria-current={active ? "true" : undefined}
-      className={`inline-flex min-h-11 items-center gap-2 rounded-full border px-4 text-sm ${
-        active ? "border-accent bg-accent text-white" : "border-line bg-white hover:bg-mint"
-      }`}
-    >
-      {children}
-    </Link>
   );
 }

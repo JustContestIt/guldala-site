@@ -10,14 +10,12 @@ export const CONTACTS = {
   instagramBotanica: "guldala.botanica",
 };
 
-// The greenhouse, ул. Мамыр, 1, с. Бесагаш: 2GIS has the exact point
-// shortcut: the Yandex map is centred on Besagash village (OpenStreetMap), without a pin — Yandex doesn't know the street;
-// put the greenhouse's own coordinates in `ll` (2GIS → «Поделиться») and add `&pt=${ll},pm2rdm` to drop one
-const ll = "77.0407,43.2990";
+// The greenhouse, ул. Мамыр, 1, с. Бесагаш: its point from 2GIS (Nikita, 25.10.2026), longitude first as Yandex wants
+const ll = "77.078248,43.353729";
 export const MAP = {
-  gis: "https://2gis.kz/almaty/geo/70030077154741280",
-  yandex: `https://yandex.kz/maps/?ll=${ll}&z=15`,
-  embed: `https://yandex.kz/map-widget/v1/?ll=${ll}&z=14`,
+  gis: "https://go.2gis.com/OhBXy",
+  yandex: `https://yandex.kz/maps/?ll=${ll}&z=16&pt=${ll}`,
+  embed: `https://yandex.kz/map-widget/v1/?ll=${ll}&z=15&pt=${ll},pm2rdm`,
 };
 
 export const waLink = (text: string) =>

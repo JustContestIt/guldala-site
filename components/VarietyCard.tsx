@@ -7,33 +7,77 @@ import { Photo } from "./Photo";
 import { PickStepper } from "./Picks";
 import { ColorDot, StockBadge } from "./ui";
 
-// max: packs left for this variety's color × type (shared by every variety of that color)
-export async function VarietyCard({ v, status, max }: { v: Variety; status: StockStatus; max: number }) {
-  const { t, href, lang } = await getDict();
+// max: packs left for this variety's color × type (shared by every variety of that color).
+// Links go to the variety's page; the catalog catches a plain click and opens the variety in a window instead
+type Props = { v: Variety; status: StockStatus; max: number };
+
+export async function VarietyCard({ v, status, max }: Props) {
+  const { t, href } = await getDict();
   const page = href(`/tulpan/sorta/${v.slug}`);
   return (
-    <article className="flex flex-col">
+    <article className="flex h-full flex-col overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-black/5">
       <Link href={page} tabIndex={-1} aria-hidden="true">
-        <Photo label={t.photos.varietyCard} ratio="4/5" swatch={COLOR_HEX[v.color]} />
+        <Photo label={t.photos.varietyCard} ratio="1/1" swatch={COLOR_HEX[v.color]} className="rounded-none!" />
       </Link>
-      <h3 className="mt-3 text-base">
-        <Link href={page} className="hover:text-accent">
-          {v.name}
-        </Link>
-      </h3>
-      <p className="mt-1 flex items-center gap-2 text-sm text-muted">
-        <ColorDot hex={COLOR_HEX[v.color]} />
-        {t.colors[v.color]} · {t.types[v.type].toLocaleLowerCase(t.locale)}
-      </p>
-      <p className="mt-1 line-clamp-2 text-sm text-muted">{v.description[lang]}</p>
-      <div className="mt-2">
-        <StockBadge status={status} t={t.stock} />
-      </div>
-      {status !== "none" && (
+      <div className="flex flex-1 flex-col p-4">
+        <h3 className="text-lg leading-snug">
+          <Link href={page} className="hover:text-accent">
+            {v.name}
+          </Link>
+        </h3>
+        <ul className="mt-2 flex flex-wrap gap-1.5">
+          {[t.colors[v.color], t.types[v.type], v.height && t.variety.stemValue(v.height)].filter(Boolean).map((tag) => (
+            <li key={tag} className="rounded-md bg-surface px-2 py-1 text-[11px] font-semibold tracking-wide text-muted uppercase">
+              {tag}
+            </li>
+          ))}
+        </ul>
         <div className="mt-3">
-          <PickStepper slug={v.slug} group={groupOf(v)} max={max} label={v.name} t={t.calc} />
+          <StockBadge status={status} t={t.stock} />
         </div>
-      )}
+        {status !== "none" && (
+          <div className="mt-auto pt-4">
+            <PickStepper slug={v.slug} group={groupOf(v)} max={max} label={v.name} t={t.calc} />
+          </div>
+        )}
+      </div>
+    </article>
+  );
+}
+
+// One line of the catalog's list view; on a phone the stock and the stepper wrap to a second line
+export async function VarietyRow({ v, status, max }: Props) {
+  const { t, href } = await getDict();
+  const page = href(`/tulpan/sorta/${v.slug}`);
+  return (
+    <article className="flex flex-wrap items-center gap-3 rounded-2xl bg-white p-3 shadow-sm ring-1 ring-black/5">
+      <Link href={page} tabIndex={-1} aria-hidden="true" className="grid size-14 shrink-0 place-items-center rounded-xl bg-mint">
+        <ColorDot hex={COLOR_HEX[v.color]} className="size-6" />
+      </Link>
+      <div className="min-w-0 flex-1 basis-40">
+        <h3 className="text-base leading-snug">
+          <Link href={page} className="hover:text-accent">
+            {v.name}
+          </Link>
+        </h3>
+        <p className="mt-0.5 text-xs text-muted">
+          {t.colors[v.color]} · {t.types[v.type].toLocaleLowerCase(t.locale)}
+          {v.height && (
+            <>
+              {" · "}
+              <span className="whitespace-nowrap">{t.variety.stemValue(v.height)}</span>
+            </>
+          )}
+        </p>
+      </div>
+      <div className="flex w-full items-center justify-between gap-3 sm:w-auto">
+        <StockBadge status={status} t={t.stock} />
+        {status !== "none" && (
+          <div className="w-34">
+            <PickStepper slug={v.slug} group={groupOf(v)} max={max} label={v.name} t={t.calc} />
+          </div>
+        )}
+      </div>
     </article>
   );
 }

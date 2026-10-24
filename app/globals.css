@@ -41,6 +41,12 @@
   }
 }
 
+/* An open window (catalog filters, a variety) keeps the page behind still; the gutter stops the page shifting sideways */
+html:has(dialog[open]) {
+  overflow: hidden;
+  scrollbar-gutter: stable;
+}
+
 @layer base {
   h1,
   h2,
