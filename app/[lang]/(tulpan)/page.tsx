@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { connection } from "next/server";
 import { Suspense } from "react";
+import greenhouse from "@/assets/greenhouse-wide.jpg";
 import { GreenhouseMap } from "@/components/GreenhouseMap";
 import { Icon, type IconName } from "@/components/icons";
 import { OrderSteps } from "@/components/OrderSteps";
@@ -46,7 +47,13 @@ async function HomeBody() {
   return (
     <>
       <section className="relative">
-        <Photo label={t.photos.homeHero} className="h-[88svh] min-h-[600px] max-h-[800px] rounded-none" />
+        {/* on a phone the card covers the lower half, so the photo is zoomed 1.5× towards the tulip rows: drawn ~4.5 screens wide */}
+        <Photo
+          label={t.photos.homeHero}
+          src={greenhouse}
+          sizes="(max-width: 639px) 450vw, 100vw"
+          className="h-[88svh] min-h-[600px] max-h-[800px] rounded-none [&_img]:object-[30%_50%] max-sm:[&_img]:origin-[30%_100%] max-sm:[&_img]:scale-150"
+        />
         <div className="absolute inset-x-0 bottom-0">
           <div className="shell pb-6 sm:pb-12">
             <div className="max-w-xl rounded-3xl bg-white p-6 shadow-sm sm:p-8">

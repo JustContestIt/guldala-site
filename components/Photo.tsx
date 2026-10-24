@@ -1,26 +1,40 @@
+import Image, { type StaticImageData } from "next/image";
 import { getDict } from "@/lib/dict";
 
-// Photo slot until real photos arrive; every label is listed in content/PHOTO-BRIEF.md
+// Photo slot: a real photo when `src` is given, otherwise a placeholder; every label is listed in content/PHOTO-BRIEF.md.
+// With a photo the label is its alt text
 export async function Photo({
   label,
+  src,
+  sizes = "100vw",
   ratio,
   swatch,
   dark,
   className = "",
 }: {
   label: string;
+  src?: StaticImageData;
+  sizes?: string; // how wide the photo is drawn, so the browser picks a sharp enough file
   ratio?: "4/5" | "3/2" | "1/1";
   swatch?: string;
   dark?: boolean;
   className?: string;
 }) {
   const { t } = await getDict();
+  const style = ratio ? { aspectRatio: ratio } : undefined;
+  if (src)
+    return (
+      <div className={`relative overflow-hidden rounded-2xl bg-mint ${className}`} style={style}>
+        {/* shortcut: eager loading suits the one hero photo; drop priority when catalog photos arrive */}
+        <Image src={src} alt={label} fill priority sizes={sizes} placeholder="blur" className="object-cover" />
+      </div>
+    );
   return (
     <div
       role="img"
       aria-label={`${t.photo.aria}: ${label}`}
       className={`relative overflow-hidden rounded-2xl ${dark ? "bg-night-soft" : "bg-mint"} ${className}`}
-      style={ratio ? { aspectRatio: ratio } : undefined}
+      style={style}
     >
       {swatch && (
         <span

@@ -1,13 +1,14 @@
 import { dayMonth } from "@/lib/format";
 import { almatyDay } from "@/lib/pricing";
-import type { ColorId, TulipType } from "../colors";
+import type { ColorId, Shade, TulipType } from "../colors";
 import type { Dict } from "./ru";
 
 // Machine-assisted translation — needs a read-through by a native speaker before launch.
 
-const COLORS: Record<ColorId, string> = {
+const COLORS: Record<Shade, string> = {
   red: "Қызыл",
   white: "Ақ",
+  cream: "Кілегей түсті",
   pink: "Қызғылт",
   yellow: "Сары",
   purple: "Күлгін",
@@ -120,7 +121,7 @@ export const kz: Dict = {
   },
 
   photos: {
-    homeHero: "қызғалдақтары бар жылыжай, жалпы көрініс — немесе қысқа бейне",
+    homeHero: "Guldala жылыжайындағы қызғалдақ қатарлары",
     colorCloseup: (label: string) => `${lower(label)} қызғалдақтар жақыннан`,
     doublesCloseup: "қос күлтелі қызғалдақтар жақыннан",
     tulpanHero: "жылыжайда түстер бойынша қызғалдақ баулары",
@@ -141,7 +142,7 @@ export const kz: Dict = {
     eyebrow: "Көтерме қызғалдақтар · Алматы",
     h1: "Голланд қызғалдақтары көтерме бағамен",
     lead: (n: number) =>
-      `Алматы маңындағы жылыжайдан ${n} голланд сорты — гүл дүкендеріне, флористерге және қайта сатушыларға. 30 данадан бау, тапсырыс 120 данадан бастап, алып кету — өзіңізге ыңғайлы күні.`,
+      `Алматы маңындағы жылыжайдан ${n} голланд сорты — гүл дүкендері мен флористерге. 30 данадан бау, тапсырыс 120 данадан бастап, алып кету — өзіңізге ыңғайлы күні.`,
     priceToday: (p: string) => `Бүгін — данасы ${p}-ден`,
     priceHint: "100 % алдын ала төлеммен. Тапсырыс неғұрлым ерте болса, баға соғұрлым төмен.",
     ctaSorts: "Сорт таңдау",
@@ -237,6 +238,8 @@ export const kz: Dict = {
       search: "Іздеу",
       searchHint: "Сорт атауы немесе түсі",
       inStock: "Тек қолда барлары",
+      tall: "Сабағы 50 см-ден",
+      twoTone: "Екі түсті",
       color: "Түсі",
       type: "Түрі",
       reset: "Сүзгілерді тазалау",

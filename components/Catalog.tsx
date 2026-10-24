@@ -2,7 +2,7 @@
 
 import { useSearchParams } from "next/navigation";
 import { useEffect, useRef, useState, type MouseEvent, type ReactNode } from "react";
-import { COLOR_HEX, COLOR_IDS, TULIP_TYPES } from "@/content/colors";
+import { SHADE_HEX, SHADES, TULIP_TYPES } from "@/content/colors";
 import type { Dict } from "@/content/dict/ru";
 import { activeFilters, matches, readFilters, writeFilters, type Facets, type Filters } from "@/lib/catalog";
 import { Icon } from "./icons";
@@ -49,7 +49,7 @@ export function Catalog({ items, counts, shows, t, colors, types }: Props) {
     history.replaceState(null, "", writeFilters({ ...cur, ...change(cur) }, location.search) || location.pathname);
   };
   const reset = () => {
-    update(() => ({ q: "", colors: [], type: undefined, stock: false }));
+    update(() => ({ q: "", colors: [], type: undefined, stock: false, tall: false, twoTone: false }));
     if (search.current) search.current.value = "";
   };
   const openFilters = () => {
@@ -151,22 +151,17 @@ export function Catalog({ items, counts, shows, t, colors, types }: Props) {
                   className={inputCls}
                 />
               </label>
-              <button
-                type="button"
-                role="switch"
-                aria-checked={f.stock}
-                onClick={() => update((c) => ({ stock: !c.stock }))}
-                className="flex min-h-11 items-center justify-between gap-4 text-left font-medium"
-              >
-                {t.inStock}
-                <span aria-hidden="true" className={`relative h-7 w-12 shrink-0 rounded-full transition-colors ${f.stock ? "bg-accent" : "bg-line"}`}>
-                  <span className={`absolute top-1 left-1 size-5 rounded-full bg-white shadow transition-transform ${f.stock ? "translate-x-5" : ""}`} />
-                </span>
-              </button>
+              <div className="grid gap-1">
+                {(["stock", "tall", "twoTone"] as const).map((k) => (
+                  <Switch key={k} on={f[k]} onClick={() => update((c) => ({ [k]: !c[k] }))}>
+                    {t[k === "stock" ? "inStock" : k]}
+                  </Switch>
+                ))}
+              </div>
               <fieldset>
                 <legend className={LABEL}>{t.color}</legend>
                 <div className="mt-2 flex flex-wrap gap-2">
-                  {COLOR_IDS.map((c) => {
+                  {SHADES.map((c) => {
                     const on = f.colors.includes(c);
                     return (
                       <button
@@ -176,7 +171,7 @@ export function Catalog({ items, counts, shows, t, colors, types }: Props) {
                         onClick={() => update((cur) => ({ colors: cur.colors.includes(c) ? cur.colors.filter((x) => x !== c) : [...cur.colors, c] }))}
                         className={CHIP}
                       >
-                        <ColorDot hex={COLOR_HEX[c]} /> {colors[c]}
+                        <ColorDot hex={SHADE_HEX[c]} /> {colors[c]}
                       </button>
                     );
                   })}
@@ -226,6 +221,17 @@ export function Catalog({ items, counts, shows, t, colors, types }: Props) {
         {open && <div className="max-h-[inherit] overflow-y-auto overscroll-contain p-4 pt-16 sm:px-6 sm:pb-6">{open.detail}</div>}
       </dialog>
     </>
+  );
+}
+
+function Switch({ on, onClick, children }: { on: boolean; onClick: () => void; children: ReactNode }) {
+  return (
+    <button type="button" role="switch" aria-checked={on} onClick={onClick} className="flex min-h-11 items-center justify-between gap-4 text-left font-medium">
+      {children}
+      <span aria-hidden="true" className={`relative h-7 w-12 shrink-0 rounded-full transition-colors ${on ? "bg-accent" : "bg-line"}`}>
+        <span className={`absolute top-1 left-1 size-5 rounded-full bg-white shadow transition-transform ${on ? "translate-x-5" : ""}`} />
+      </span>
+    </button>
   );
 }
 

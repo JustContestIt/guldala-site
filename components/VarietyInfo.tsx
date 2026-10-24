@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { COLOR_HEX } from "@/content/colors";
+import { SHADE_HEX } from "@/content/colors";
 import { waLink } from "@/content/site";
 import { groupOf, type Variety } from "@/content/varieties";
 import { getDict } from "@/lib/dict";
@@ -12,8 +12,9 @@ import { ButtonLink, ColorDot, Ph, StockBadge } from "./ui";
 // Everything under a variety's name: on its page and in the catalog's window. price: per stem today at 100 % prepayment
 export async function VarietyInfo({ v, status, max, price }: { v: Variety; status: StockStatus; max: number; price: number }) {
   const { t, lang } = await getDict();
+  const [shade] = v.shades;
   const rows: [string, ReactNode][] = [
-    [t.variety.color, t.colors[v.color]],
+    [t.variety.color, [t.colors[shade], v.shades.length > 1 && t.sorta.ui.twoTone.toLocaleLowerCase(t.locale)].filter(Boolean).join(", ")],
     [t.variety.type, t.types[v.type]],
     [t.variety.stem, v.height ? t.variety.stemValue(v.height) : <Ph>{t.ph.stem}</Ph>],
     [t.variety.vase, v.vaseLife ? t.variety.vaseValue(v.vaseLife) : <Ph>{t.ph.vase}</Ph>],
@@ -21,7 +22,7 @@ export async function VarietyInfo({ v, status, max, price }: { v: Variety; statu
   return (
     <>
       <p className="mt-2 flex items-center gap-2 text-muted">
-        <ColorDot hex={COLOR_HEX[v.color]} className="size-4" /> {t.colors[v.color]} · {t.types[v.type].toLocaleLowerCase(t.locale)}
+        <ColorDot hex={SHADE_HEX[shade]} className="size-4" /> {t.colors[shade]} · {t.types[v.type].toLocaleLowerCase(t.locale)}
       </p>
       <div className="mt-4 flex flex-wrap items-center gap-3">
         <StockBadge status={status} t={t.stock} />

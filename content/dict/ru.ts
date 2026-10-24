@@ -1,9 +1,10 @@
 import { dayMonth } from "@/lib/format";
-import type { ColorId, TulipType } from "../colors";
+import type { ColorId, Shade, TulipType } from "../colors";
 
-const COLORS: Record<ColorId, string> = {
+const COLORS: Record<Shade, string> = {
   red: "Красные",
   white: "Белые",
+  cream: "Кремовые",
   pink: "Розовые",
   yellow: "Жёлтые",
   purple: "Фиолетовые",
@@ -104,7 +105,7 @@ export const ru = {
   },
 
   photos: {
-    homeHero: "теплица с тюльпанами, общий план — или короткое видео",
+    homeHero: "Ряды тюльпанов в теплице Guldala",
     colorCloseup: (label: string) => `${label.toLowerCase()} тюльпаны крупно`,
     doublesCloseup: "махровые тюльпаны крупно",
     tulpanHero: "пачки тюльпанов по цветам в теплице",
@@ -125,7 +126,7 @@ export const ru = {
     eyebrow: "Тюльпаны оптом · Алматы",
     h1: "Голландские тюльпаны оптом",
     lead: (n: number) =>
-      `${n} ${plural(n, "голландский сорт", "голландских сорта", "голландских сортов")} из теплицы под Алматы — для цветочных магазинов, флористов и перекупщиков. Пачки по 30 штук, заказ от 120 штук, вывоз в удобный вам день.`,
+      `${n} ${plural(n, "голландский сорт", "голландских сорта", "голландских сортов")} из теплицы под Алматы — для цветочных магазинов и флористов. Пачки по 30 штук, заказ от 120 штук, вывоз в удобный вам день.`,
     priceToday: (p: string) => `Сегодня — от ${p} за штуку`,
     priceHint: "при 100 % предоплаты. Чем раньше заказ, тем ниже цена.",
     ctaSorts: "Выбрать сорта",
@@ -222,6 +223,8 @@ export const ru = {
       search: "Поиск",
       searchHint: "Название сорта или цвет",
       inStock: "Только в наличии",
+      tall: "Стебель от 50 см",
+      twoTone: "Двухцветные",
       color: "Цвет",
       type: "Тип",
       reset: "Сбросить фильтры",

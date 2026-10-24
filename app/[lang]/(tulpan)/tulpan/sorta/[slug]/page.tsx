@@ -6,7 +6,7 @@ import { Photo } from "@/components/Photo";
 import { OrderBar } from "@/components/Picks";
 import { VarietyCard } from "@/components/VarietyCard";
 import { VarietyInfo } from "@/components/VarietyInfo";
-import { COLOR_HEX } from "@/content/colors";
+import { SHADE_HEX } from "@/content/colors";
 import { VARIETIES, type Variety } from "@/content/varieties";
 import { getDict, pageMeta } from "@/lib/dict";
 import { getSeason } from "@/lib/season";
@@ -48,11 +48,11 @@ async function VarietyBody({ v }: { v: Variety }) {
       <nav aria-label={t.nav.crumbs} className="text-sm text-muted">
         <Link href={href("/tulpan/sorta")} className="hover:text-accent">{t.variety.crumbs}</Link>
         {" / "}
-        <Link href={href(`/tulpan/sorta?color=${v.color}`)} className="hover:text-accent">{t.colors[v.color]}</Link>
+        <Link href={href(`/tulpan/sorta?color=${v.shades[0]}`)} className="hover:text-accent">{t.colors[v.shades[0]]}</Link>
       </nav>
 
       <div className="mt-6 grid gap-8 lg:grid-cols-[1.3fr_1fr]">
-        <Photo label={t.photos.bud} ratio="4/5" swatch={COLOR_HEX[v.color]} className="self-start max-sm:aspect-[4/3]!" />
+        <Photo label={t.photos.bud} ratio="4/5" swatch={SHADE_HEX[v.shades[0]]} className="self-start max-sm:aspect-[4/3]!" />
 
         <div className="self-start lg:sticky lg:top-24">
           <h1 className="text-3xl sm:text-4xl">{v.name}</h1>

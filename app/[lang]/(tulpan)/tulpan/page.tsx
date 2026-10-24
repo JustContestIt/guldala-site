@@ -6,6 +6,7 @@ import { Photo } from "@/components/Photo";
 import { ButtonLink, SectionTitle, StockBadge } from "@/components/ui";
 import { COLOR_HEX, TULIP_TYPES } from "@/content/colors";
 import { waLink } from "@/content/site";
+import { shadesOf } from "@/content/varieties";
 import { getDict, pageMeta } from "@/lib/dict";
 import { tenge } from "@/lib/format";
 import { almatyDay, PREPAYMENTS, pricePerStem } from "@/lib/pricing";
@@ -115,7 +116,7 @@ async function TulpanBody() {
         <ul className="-mx-1 flex snap-x gap-3 overflow-x-auto px-1 pb-3">
           {stock.map((s) => (
             <li key={s.productId} className="w-[62%] shrink-0 snap-start sm:w-[34%] lg:w-[23%]">
-              <Link href={href(`/tulpan/sorta?color=${s.color}&type=${s.type}`)} className="group block">
+              <Link href={href(`/tulpan/sorta?color=${shadesOf(s).join(",") || s.color}&type=${s.type}`)} className="group block">
                 <Photo label={t.photos.pack(t.product(s.color, s.type))} ratio="4/5" swatch={COLOR_HEX[s.color]} />
                 <span className="mt-3 block font-semibold group-hover:text-accent">{t.product(s.color, s.type)}</span>
                 <span className="mt-1 flex flex-wrap items-center gap-2 text-sm text-muted">

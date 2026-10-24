@@ -12,4 +12,9 @@ export const COLOR_HEX: Record<ColorId, string> = {
 };
 
 export const COLOR_IDS = Object.keys(COLOR_HEX) as ColorId[];
+
+// A flower's real color: cream varieties are sold in the white line but filtered and labelled as cream
+export type Shade = ColorId | "cream";
+export const SHADE_HEX: Record<Shade, string> = { ...COLOR_HEX, cream: "#F2E3B3" };
+export const SHADES: Shade[] = ["red", "white", "cream", "pink", "yellow", "purple", "orange"];
 export const TULIP_TYPES: TulipType[] = ["classic", "double"];

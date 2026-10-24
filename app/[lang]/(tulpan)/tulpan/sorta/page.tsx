@@ -5,8 +5,8 @@ import { OrderBar } from "@/components/Picks";
 import { Ph } from "@/components/ui";
 import { VarietyCard, VarietyRow } from "@/components/VarietyCard";
 import { VarietyInfo } from "@/components/VarietyInfo";
-import { COLOR_HEX } from "@/content/colors";
-import { VARIETIES } from "@/content/varieties";
+import { SHADE_HEX } from "@/content/colors";
+import { isTall, VARIETIES } from "@/content/varieties";
 import { getDict, pageMeta } from "@/lib/dict";
 import { isToken } from "@/lib/orders";
 import { getSeason } from "@/lib/season";
@@ -42,18 +42,22 @@ async function Varieties({ searchParams }: { searchParams: PageProps<"/[lang]/tu
   const items: CatalogItem[] = VARIETIES.map((v) => {
     const line = stock.find((s) => s.color === v.color && s.type === v.type);
     const p = { v, status: line?.status ?? "none", max: line?.maxPacks ?? 0 };
+    const [shade] = v.shades;
+    const twoTone = v.shades.length > 1;
     return {
       slug: v.slug,
       name: v.name,
-      text: `${v.name} ${t.colors[v.color]} ${t.types[v.type]}`.toLowerCase(),
-      color: v.color,
+      text: `${v.name} ${t.colors[shade]} ${t.types[v.type]} ${twoTone ? t.sorta.ui.twoTone : ""}`.toLowerCase(),
+      color: shade,
       type: v.type,
       inStock: p.status !== "none",
+      tall: isTall(v),
+      twoTone,
       card: <VarietyCard {...p} />,
       row: <VarietyRow {...p} />,
       detail: (
         <>
-          <Photo label={t.photos.bud} ratio="1/1" swatch={COLOR_HEX[v.color]} />
+          <Photo label={t.photos.bud} ratio="1/1" swatch={SHADE_HEX[shade]} />
           <h2 className="mt-5 text-2xl">{v.name}</h2>
           <VarietyInfo {...p} price={prices[v.type].today} />
         </>

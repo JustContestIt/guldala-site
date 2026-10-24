@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { COLOR_HEX } from "@/content/colors";
+import { SHADE_HEX } from "@/content/colors";
 import { groupOf, type Variety } from "@/content/varieties";
 import { getDict } from "@/lib/dict";
 import type { StockStatus } from "@/lib/season";
@@ -17,7 +17,7 @@ export async function VarietyCard({ v, status, max }: Props) {
   return (
     <article className="flex h-full flex-col overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-black/5">
       <Link href={page} tabIndex={-1} aria-hidden="true">
-        <Photo label={t.photos.varietyCard} ratio="1/1" swatch={COLOR_HEX[v.color]} className="rounded-none!" />
+        <Photo label={t.photos.varietyCard} ratio="1/1" swatch={SHADE_HEX[v.shades[0]]} className="rounded-none!" />
       </Link>
       <div className="flex flex-1 flex-col p-4">
         <h3 className="text-lg leading-snug">
@@ -26,7 +26,7 @@ export async function VarietyCard({ v, status, max }: Props) {
           </Link>
         </h3>
         <ul className="mt-2 flex flex-wrap gap-1.5">
-          {[t.colors[v.color], t.types[v.type], v.height && t.variety.stemValue(v.height)].filter(Boolean).map((tag) => (
+          {[t.colors[v.shades[0]], v.shades.length > 1 ? t.sorta.ui.twoTone : undefined, t.types[v.type], v.height && t.variety.stemValue(v.height)].filter(Boolean).map((tag) => (
             <li key={tag} className="rounded-md bg-surface px-2 py-1 text-[11px] font-semibold tracking-wide text-muted uppercase">
               {tag}
             </li>
@@ -52,7 +52,7 @@ export async function VarietyRow({ v, status, max }: Props) {
   return (
     <article className="flex flex-wrap items-center gap-3 rounded-2xl bg-white p-3 shadow-sm ring-1 ring-black/5">
       <Link href={page} tabIndex={-1} aria-hidden="true" className="grid size-14 shrink-0 place-items-center rounded-xl bg-mint">
-        <ColorDot hex={COLOR_HEX[v.color]} className="size-6" />
+        <ColorDot hex={SHADE_HEX[v.shades[0]]} className="size-6" />
       </Link>
       <div className="min-w-0 flex-1 basis-40">
         <h3 className="text-base leading-snug">
@@ -61,7 +61,7 @@ export async function VarietyRow({ v, status, max }: Props) {
           </Link>
         </h3>
         <p className="mt-0.5 text-xs text-muted">
-          {t.colors[v.color]} · {t.types[v.type].toLocaleLowerCase(t.locale)}
+          {t.colors[v.shades[0]]} · {t.types[v.type].toLocaleLowerCase(t.locale)}
           {v.height && (
             <>
               {" · "}
