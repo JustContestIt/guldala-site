@@ -28,9 +28,9 @@ export function MobileMenu({
         aria-controls="mobile-menu"
         aria-label={open ? labels.close : labels.open}
         onClick={() => setOpen(!open)}
-        className="grid size-11 place-items-center rounded-xl border border-line"
+        className="grid size-11 place-items-center rounded-xl bg-accent text-white shadow-sm hover:bg-accent-dark"
       >
-        <Icon name={open ? "close" : "menu"} />
+        <Icon name={open ? "close" : "menu"} className="size-6" strokeWidth={2.4} />
       </button>
       {open && (
         <nav id="mobile-menu" aria-label={labels.menu} className="absolute inset-x-0 top-16 border-b border-line bg-white">

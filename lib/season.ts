@@ -31,6 +31,7 @@ export type SeasonCurrent = {
     pickupFrom: string;
     pickupTo: string;
     peakHoursFrom: string; // "" = no evening hours in this season
+    storageFeePerDay: number; // ₸ per order for each day in the fridge, from the order day to pickup
   };
   asOf: string;
   prices: Record<TulipType, { today: number; next: { from: string; price: number } | null }>;

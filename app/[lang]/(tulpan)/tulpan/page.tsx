@@ -3,7 +3,7 @@ import { Suspense } from "react";
 import { Icon } from "@/components/icons";
 import { OrderSteps } from "@/components/OrderSteps";
 import { Photo } from "@/components/Photo";
-import { ButtonLink, Ph, SectionTitle, StockBadge } from "@/components/ui";
+import { ButtonLink, SectionTitle, StockBadge } from "@/components/ui";
 import { COLOR_HEX, TULIP_TYPES } from "@/content/colors";
 import { waLink } from "@/content/site";
 import { getDict, pageMeta } from "@/lib/dict";
@@ -24,6 +24,7 @@ export default function TulpanPage() {
   );
 }
 
+// Prices and stock; the conditions, the greenhouse and the questions live on the home page
 async function TulpanBody() {
   const { t, href } = await getDict();
   const { season, asOf, prices, priceGrid, stock } = await getSeason();
@@ -34,7 +35,7 @@ async function TulpanBody() {
   return (
     <>
       <section className="relative">
-        <Photo label={t.photos.tulpanHero} className="h-[64svh] min-h-[440px] max-h-[640px] rounded-none" />
+        <Photo label={t.photos.tulpanHero} className="h-[56svh] min-h-[420px] max-h-[600px] rounded-none" />
         <div className="absolute inset-x-0 bottom-0">
           <div className="shell pb-8">
             <div className="max-w-xl rounded-3xl bg-white p-6 sm:p-8">
@@ -43,37 +44,23 @@ async function TulpanBody() {
               </p>
               <h1 className="mt-2 text-3xl leading-tight sm:text-5xl">{t.tulpan.h1}</h1>
               <p className="mt-3 text-muted">{t.tulpan.lead}</p>
+              <div className="mt-5 flex flex-wrap gap-3">
+                <ButtonLink href={href("/tulpan/sorta")}>{t.tulpan.calcCta}</ButtonLink>
+              </div>
             </div>
           </div>
         </div>
       </section>
 
-      <section className="shell py-12 md:py-16">
-        <SectionTitle title={t.tulpan.colorsTitle} lead={t.tulpan.colorsLead} />
-        <ul className="-mx-1 flex snap-x gap-3 overflow-x-auto px-1 pb-3">
-          {stock.map((s) => (
-            <li key={s.productId} className="w-[62%] shrink-0 snap-start sm:w-[34%] lg:w-[23%]">
-              <Link href={href(`/tulpan/sorta?color=${s.color}&type=${s.type}`)} className="group block">
-                <Photo label={t.photos.pack(t.product(s.color, s.type))} ratio="4/5" swatch={COLOR_HEX[s.color]} />
-                <span className="mt-3 block font-semibold group-hover:text-accent">{t.product(s.color, s.type)}</span>
-                <span className="mt-1 flex flex-wrap items-center gap-2 text-sm text-muted">
-                  <StockBadge status={s.status} t={t.stock} /> {t.fromPerStem(tenge(prices[s.type].today))}
-                </span>
-              </Link>
-            </li>
-          ))}
-        </ul>
-      </section>
-
       <section className="bg-surface py-12 md:py-16">
-        <div className="shell grid gap-8 lg:grid-cols-[1.1fr_1fr]">
-          <div className="rounded-3xl bg-white p-6 sm:p-8">
+        <div className="shell grid gap-8 lg:grid-cols-[1fr_1.1fr]">
+          <div className="self-start rounded-3xl bg-white p-6 sm:p-8">
             <h2 className="text-2xl">{t.tulpan.priceTitle(t.dayMonth(asOf))}</h2>
             <div className="mt-6 grid grid-cols-2 gap-4">
               {TULIP_TYPES.map((type) => (
                 <div key={type}>
                   <p className="text-sm text-muted">{t.types[type]}</p>
-                  <p className="mt-1 font-display text-4xl font-extrabold sm:text-5xl">{t.from(tenge(prices[type].today))}</p>
+                  <p className="mt-1 font-display text-3xl font-extrabold whitespace-nowrap sm:text-5xl">{t.from(tenge(prices[type].today))}</p>
                   <p className="text-sm text-muted">{t.tulpan.perStem}</p>
                 </div>
               ))}
@@ -92,11 +79,8 @@ async function TulpanBody() {
             </div>
           </div>
 
-          <details className="group min-w-0 self-start rounded-3xl border border-line bg-white p-5 sm:p-8">
-            <summary className="flex min-h-11 list-none items-center justify-between gap-4 font-semibold [&::-webkit-details-marker]:hidden">
-              {t.tulpan.gridTitle}
-              <Icon name="chevron" className="size-5 transition-transform group-open:rotate-180" />
-            </summary>
+          <div className="min-w-0 rounded-3xl border border-line bg-white p-5 sm:p-8">
+            <h2 className="text-xl">{t.tulpan.gridTitle}</h2>
             {TULIP_TYPES.map((type) => (
               <div key={type} className="mt-6 overflow-x-auto">
                 <table className="w-full text-right text-sm tabular-nums">
@@ -122,74 +106,30 @@ async function TulpanBody() {
                 </table>
               </div>
             ))}
-          </details>
+          </div>
         </div>
       </section>
 
       <section className="shell py-12 md:py-16">
-        <SectionTitle title={t.tulpan.stepsTitle} />
-        <OrderSteps />
-      </section>
-
-      <section className="shell pb-12 md:pb-16">
-        <SectionTitle title={t.tulpan.conditionsTitle} />
-        <ul className="flex flex-wrap gap-2">
-          {t.conditions.map((c) => (
-            <li key={c} className="rounded-full border border-line px-4 py-2 text-sm">{c}</li>
+        <SectionTitle title={t.tulpan.colorsTitle} lead={t.tulpan.colorsLead} />
+        <ul className="-mx-1 flex snap-x gap-3 overflow-x-auto px-1 pb-3">
+          {stock.map((s) => (
+            <li key={s.productId} className="w-[62%] shrink-0 snap-start sm:w-[34%] lg:w-[23%]">
+              <Link href={href(`/tulpan/sorta?color=${s.color}&type=${s.type}`)} className="group block">
+                <Photo label={t.photos.pack(t.product(s.color, s.type))} ratio="4/5" swatch={COLOR_HEX[s.color]} />
+                <span className="mt-3 block font-semibold group-hover:text-accent">{t.product(s.color, s.type)}</span>
+                <span className="mt-1 flex flex-wrap items-center gap-2 text-sm text-muted">
+                  <StockBadge status={s.status} t={t.stock} /> {t.fromPerStem(tenge(prices[s.type].today))}
+                </span>
+              </Link>
+            </li>
           ))}
         </ul>
       </section>
 
-      <section className="bg-surface py-12 md:py-16">
-        <div className="shell">
-          <SectionTitle title={t.tulpan.whereTitle} lead={t.tulpan.whereLead} />
-          <div className="grid gap-4 sm:grid-cols-2">
-            <Photo label={t.photos.greenhouse} ratio="3/2" />
-            <Photo label={t.photos.fridge} ratio="3/2" />
-          </div>
-          <div className="mt-6 grid gap-4 md:grid-cols-2">
-            <div className="rounded-2xl bg-white p-6">
-              <h3 className="text-lg">{t.tulpan.qualityTitle}</h3>
-              <dl className="mt-3 grid gap-2 text-sm">
-                {(
-                  [
-                    [t.tulpan.stem, t.ph.stem],
-                    [t.tulpan.glass, t.ph.glass],
-                    [t.tulpan.bulb, t.ph.bulb],
-                  ] as const
-                ).map(([k, v]) => (
-                  <div key={k} className="flex justify-between gap-4 border-b border-line pb-2 last:border-0">
-                    <dt className="text-muted">{k}</dt>
-                    <dd><Ph>{v}</Ph></dd>
-                  </div>
-                ))}
-              </dl>
-            </div>
-            <div className="rounded-2xl bg-white p-6">
-              <h3 className="text-lg">{t.tulpan.payTitle}</h3>
-              <p className="mt-3 text-sm text-muted">{t.tulpan.payText}</p>
-              <p className="mt-3 text-sm">
-                {t.tulpan.ip} <Ph>{t.ph.ip}</Ph> · {t.tulpan.bin} <Ph>{t.ph.bin}</Ph>
-              </p>
-              <p className="mt-1 text-sm"><Ph>{t.ph.address}</Ph></p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section className="shell py-12 md:py-16">
-        <SectionTitle title={t.tulpan.faqTitle} />
-        <div className="max-w-3xl divide-y divide-line border-y border-line">
-          {t.faq.map((f) => (
-            <details key={f.q} className="group">
-              <summary className="flex min-h-14 list-none items-center justify-between gap-4 py-3 font-semibold [&::-webkit-details-marker]:hidden">
-                {f.q}
-                <Icon name="chevron" className="size-5 transition-transform group-open:rotate-180" />
-              </summary>
-              <p className="pb-4 text-muted">{f.a}</p>
-            </details>
-          ))}
-        </div>
+      <section className="shell pb-12 md:pb-16">
+        <SectionTitle title={t.tulpan.stepsTitle} />
+        <OrderSteps />
       </section>
     </>
   );

@@ -8,7 +8,7 @@ import { VARIETIES } from "@/content/varieties";
 import { crmPost } from "@/lib/crm";
 import { tenge } from "@/lib/format";
 import { isLang, localHref } from "@/lib/i18n";
-import { linesFromPicks, parsePicks, quote, slotsFor } from "@/lib/order";
+import { linesFromPicks, parsePicks, quote, slotsFor, storageDays } from "@/lib/order";
 import { almatyDay, PREPAYMENTS } from "@/lib/pricing";
 import { cachedSeason, type PrepaymentPct } from "@/lib/season";
 import { isBin, normalizePhone, text } from "@/lib/validate";
@@ -27,17 +27,20 @@ export async function submitOrder(_: OrderState, fd: FormData): Promise<OrderSta
 
   const { season, asOf, priceGrid, stock } = await cachedSeason();
   const { lines, sorts } = linesFromPicks(picks, VARIETIES, stock);
-  const q = quote({ priceGrid, stock }, lines, pct, almatyDay(new Date(asOf)));
+  const date = text(fd.get("date"), 10);
+  const day = almatyDay(new Date(asOf));
+  const storage = !!fd.get("storage");
+  const days = storage ? storageDays(day, date) : 0;
+  const q = quote({ priceGrid, stock }, lines, pct, day, days * season.storageFeePerDay);
   // The CRM sells colors; the varieties the client picked reach Tatiana as a wish
   const wishes = sorts.length ? `Сорта: ${sorts.map((x) => `${x.name} — ${x.packs} пач.`).join(", ")}` : "";
   const comment = [wishes, text(fd.get("comment"), 1000)].filter(Boolean).join("\n");
-  const date = text(fd.get("date"), 10);
   const slot = text(fd.get("slot"), 20);
   const method = fd.get("method") === "client_truck" ? "client_truck" : "self";
   const company = text(fd.get("company"));
   const name = text(fd.get("name"));
   const phone = normalizePhone(text(fd.get("phone"), 30));
-  const legal = fd.get("legal") === "too" ? "too" : "ip";
+  const legal = fd.get("legal") === "too" ? "too" : fd.get("legal") === "person" ? "person" : "ip";
   const bin = text(fd.get("bin"), 20).replace(/\s/g, "");
   const org = text(fd.get("org"));
 
@@ -48,7 +51,7 @@ export async function submitOrder(_: OrderState, fd: FormData): Promise<OrderSta
   if (q.missingStems > 0) errors.push("min");
   if (!slotsFor(season, date).length) errors.push("date");
   else if (!slotsFor(season, date).includes(slot)) errors.push("slot");
-  if (!company) errors.push("company");
+  if (!company && legal !== "person") errors.push("company");
   if (!name) errors.push("name");
   if (!phone) errors.push("phone");
   if (legal === "too" && !isBin(bin)) errors.push("bin");
@@ -60,9 +63,9 @@ export async function submitOrder(_: OrderState, fd: FormData): Promise<OrderSta
     `Заявка с сайта${lang === "kz" ? " (KZ)" : ""}`,
     ...q.lines.map((l) => `${ru.product(l.color, l.type)}: ${l.packs} пач. × ${l.pricePerStem} ₸ = ${tenge(l.sum)}`),
     `Итого ${tenge(q.total)}, предоплата ${pct} % = ${tenge(q.prepayment)}, остаток ${tenge(q.remainder)}`,
-    `Вывоз ${date} ${slot}, ${method === "self" ? "самовывоз" : "машина клиента"}${fd.get("storage") ? ", холодильник до вывоза" : ""}`,
-    `${company}, ${name}, ${phone}`,
-    legal === "too" ? `ТОО «${org}», БИН ${bin}` : "ИП",
+    `Вывоз ${date} ${slot}, ${method === "self" ? "самовывоз" : "машина клиента"}${storage ? `, холодильник ${days} сут. — ${tenge(q.fee)}` : ""}`,
+    [company, name, phone].filter(Boolean).join(", "),
+    legal === "too" ? `ТОО «${org}», БИН ${bin}` : legal === "person" ? "Физлицо" : "ИП",
     comment,
   ]
     .filter(Boolean)
@@ -78,7 +81,7 @@ export async function submitOrder(_: OrderState, fd: FormData): Promise<OrderSta
         pickupDate: date,
         pickupSlot: slot,
         pickupMethod: method,
-        storage: !!fd.get("storage"),
+        storage,
         client: { company, name, phone, legalType: legal, bin, orgName: org },
         comment,
         source: "site",

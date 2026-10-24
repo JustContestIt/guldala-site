@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { linesFromPicks, parsePicks, prepaymentAmount, quote, serializePicks, slotsFor } from "./order";
+import { linesFromPicks, parsePicks, prepaymentAmount, quote, serializePicks, slotsFor, storageDays } from "./order";
 import { ID, season } from "./season.fixture";
 
 const DAY = "2026-10-21";
@@ -22,6 +22,15 @@ describe("order quote", () => {
     const q = quote(season, [{ productId: ID.pink, packs: 9 }, { productId: ID.orange, packs: 4 }, { productId: ID.red, packs: 4 }], 100, DAY);
     expect(q.overStock).toEqual([ID.pink, ID.orange]);
     expect(quote(season, [{ productId: ID.pink, packs: 8 }], 100, DAY).overStock).toEqual([]);
+  });
+
+  it("adds the fridge by the day from the order day to pickup, and takes the prepayment of it too", () => {
+    expect(storageDays(DAY, "2026-10-24")).toBe(3);
+    expect(storageDays(DAY, DAY)).toBe(0);
+    expect(storageDays(DAY, "")).toBe(0);
+    const q = quote(season, [{ productId: ID.red, packs: 4 }], 60, DAY, storageDays(DAY, "2026-10-24") * season.season.storageFeePerDay);
+    // 120 × 100 ₸ + 3 days × 1 000 ₸ at 60 %
+    expect(q).toMatchObject({ fee: 3_000, total: 15_000, prepayment: 9_000, remainder: 6_000 });
   });
 
   it("rounds prepayment up to a whole tenge", () => {

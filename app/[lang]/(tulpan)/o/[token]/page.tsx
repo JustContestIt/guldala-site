@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { Icon } from "@/components/icons";
-import { Photo } from "@/components/Photo";
+import { GreenhouseMap } from "@/components/GreenhouseMap";
 import { ClearPicks } from "@/components/Picks";
 import { ButtonLink, Ph } from "@/components/ui";
 import { waLink } from "@/content/site";
@@ -82,6 +82,12 @@ async function Order({ params, searchParams }: Pick<PageProps<"/[lang]/o/[token]
               <span className="font-semibold tabular-nums">{tenge(l.sum)}</span>
             </li>
           ))}
+          {order.storageFee > 0 && (
+            <li className="flex justify-between gap-4 py-2">
+              <span>{t.order.storageFee(order.storageDays)}</span>
+              <span className="font-semibold tabular-nums">{tenge(order.storageFee)}</span>
+            </li>
+          )}
         </ul>
         <p className="mt-2 text-xs text-muted">{t.order.priceNote}</p>
         <dl className="mt-3 grid gap-2 border-t border-line pt-3 text-sm">
@@ -92,15 +98,14 @@ async function Order({ params, searchParams }: Pick<PageProps<"/[lang]/o/[token]
         </dl>
       </section>
 
-      <section className={`mt-6 grid gap-4 sm:grid-cols-2 ${box}`}>
+      <section className={`mt-6 grid gap-4 sm:grid-cols-[1fr_1.4fr] ${box}`}>
         <div>
           <h2 className="text-lg">{t.order.pickupTitle}</h2>
           <p className="mt-2 text-sm">{t.dayMonth(order.pickup.date)}, {order.pickup.slot}</p>
           <p className="mt-1 text-sm">{order.pickup.method === "self" ? t.calc.self : t.calc.truck}</p>
           {order.pickup.storage && <p className="mt-1 text-sm">{t.order.storage}</p>}
-          <p className="mt-1 text-sm"><Ph>{t.ph.address}</Ph></p>
         </div>
-        <Photo label={t.photos.map} ratio="3/2" />
+        <GreenhouseMap />
       </section>
 
       <section className={`mt-6 ${box}`}>

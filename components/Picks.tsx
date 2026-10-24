@@ -121,7 +121,7 @@ export function OrderBar({ data, href, token, t }: { data: Pick<SeasonCurrent, "
   if (!lines.length) return null;
   const q = quote(data, lines, 100, almatyDay(new Date(data.asOf)));
   return (
-    <div className="fixed inset-x-0 bottom-0 z-20 border-t border-line bg-white/95 pb-[env(safe-area-inset-bottom)] backdrop-blur">
+    <div data-order-bar className="fixed inset-x-0 bottom-0 z-20 border-t border-line bg-white/95 pb-[env(safe-area-inset-bottom)] backdrop-blur">
       <div className="shell flex items-center gap-3 py-3">
         <div className="min-w-0 flex-1 text-sm">
           <p className="font-semibold">{fmt(t.packs, { n: q.stems / PACK_SIZE, stems: q.stems })}</p>

@@ -15,9 +15,16 @@ export default async function AboutPage() {
         <div>
           <h1 className="text-3xl sm:text-5xl">{t.about.h1}</h1>
           <p className="mt-3 text-lg text-muted">{t.about.lead}</p>
-          <p className="mt-6"><Ph>{t.ph.history}</Ph></p>
+          {t.about.text.map((p) => (
+            <p key={p} className="mt-4">
+              {p}
+            </p>
+          ))}
+          <ButtonLink href={href("/tulpan/sorta")} className="mt-6">
+            {t.home.ctaSorts}
+          </ButtonLink>
         </div>
-        <Photo label={t.photos.family} ratio="4/5" />
+        <Photo label={t.photos.aboutHero} ratio="4/5" />
       </div>
 
       <section className="mt-16">
@@ -44,7 +51,7 @@ export default async function AboutPage() {
       <section className="mt-16 rounded-2xl border border-line p-6">
         <h2 className="text-xl">{t.about.reqTitle}</h2>
         <p className="mt-3 text-sm">{t.tulpan.ip} <Ph>{t.ph.ip}</Ph> · {t.tulpan.bin} <Ph>{t.ph.bin}</Ph></p>
-        <p className="mt-1 text-sm"><Ph>{t.ph.address}</Ph></p>
+        <p className="mt-1 text-sm">{t.contacts.address}</p>
         <ButtonLink href={href("/kontakty")} variant="secondary" className="mt-5">{t.nav.contacts}</ButtonLink>
       </section>
     </div>

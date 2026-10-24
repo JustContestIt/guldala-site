@@ -1,6 +1,6 @@
+import { GreenhouseMap } from "@/components/GreenhouseMap";
 import { Icon } from "@/components/icons";
-import { Photo } from "@/components/Photo";
-import { ButtonLink, Ph } from "@/components/ui";
+import { ButtonLink } from "@/components/ui";
 import { CONTACTS, instagramUrl, waLink } from "@/content/site";
 import { getDict, pageMeta } from "@/lib/dict";
 
@@ -29,17 +29,13 @@ export default async function ContactsPage() {
           <h2 className="text-xl">{t.contacts.hoursTitle}</h2>
           <p className="mt-2">{t.contacts.hours}</p>
           <h2 className="mt-6 text-xl">{t.contacts.socialTitle}</h2>
-          <ul className="mt-1 text-sm">
-            <li><a href={instagramUrl(CONTACTS.instagramTulpan)} {...ext}><Icon name="instagram" className="size-4 text-accent" /> @{CONTACTS.instagramTulpan}</a></li>
-            <li className="flex min-h-11 items-center gap-2"><Icon name="send" className="size-4 text-accent" /> Telegram: <Ph>{t.ph.telegram}</Ph></li>
-          </ul>
+          <a href={instagramUrl(CONTACTS.instagramTulpan)} {...ext}>
+            <Icon name="instagram" className="size-4 text-accent" /> @{CONTACTS.instagramTulpan}
+          </a>
         </section>
-        <section className={`${box} md:col-span-2 grid gap-4 md:grid-cols-[1fr_2fr]`}>
-          <div>
-            <h2 className="text-xl">{t.contacts.addressTitle}</h2>
-            <p className="mt-2 flex items-center gap-2"><Icon name="pin" className="size-4 text-accent" /> <Ph>{t.ph.address}</Ph></p>
-          </div>
-          <Photo label={t.photos.map} ratio="3/2" />
+        <section className={`${box} md:col-span-2`}>
+          <h2 className="text-xl">{t.contacts.addressTitle}</h2>
+          <GreenhouseMap className="mt-3" />
         </section>
       </div>
     </div>

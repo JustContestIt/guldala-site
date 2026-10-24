@@ -22,7 +22,7 @@ export default async function SortaPage({ searchParams }: PageProps<"/[lang]/tul
     <div className="shell pt-10 pb-28 md:pt-14">
       <h1 className="text-3xl sm:text-4xl">{t.sorta.h1}</h1>
       <p className="mt-2 max-w-2xl text-muted">
-        {t.sorta.lead} <Ph>{t.ph.varieties}</Ph>
+        {t.sorta.lead(VARIETIES.length)} <Ph>{t.ph.varieties}</Ph>
       </p>
       <Suspense fallback={<p className="py-20 text-muted">{t.sorta.loading}</p>}>
         <Catalog searchParams={searchParams} />

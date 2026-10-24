@@ -38,11 +38,8 @@ export async function Footer({ botanica = false }: { botanica?: boolean }) {
           <a href={instagramUrl(instagram)} {...ext}>
             <Icon name="instagram" className="size-4" /> @{instagram}
           </a>
-          <p className="flex items-center gap-2">
-            <Icon name="send" className="size-4" /> Telegram: <Ph>{t.ph.telegram}</Ph>
-          </p>
-          <p className="flex items-center gap-2">
-            <Icon name="pin" className="size-4" /> <Ph>{t.ph.address}</Ph>
+          <p className="flex items-start gap-2">
+            <Icon name="pin" className="mt-0.5 size-4" /> {t.contacts.address}
           </p>
           {!botanica && <p>{t.footer.pickup(t.contacts.hours)}</p>}
         </div>

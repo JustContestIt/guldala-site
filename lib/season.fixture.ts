@@ -18,7 +18,7 @@ const periods = [
 const surcharge = { 40: 15, 60: 10, 80: 5, 100: 0 } as const;
 
 export const season: SeasonCurrent = {
-  season: { id: "2027", name: "Сезон 8 марта 2027", saleOpen: true, peakDate: "2027-03-08", pickupFrom: "2027-03-01", pickupTo: "2027-03-08", peakHoursFrom: "2027-03-05" },
+  season: { id: "2027", name: "Сезон 8 марта 2027", saleOpen: true, peakDate: "2027-03-08", pickupFrom: "2027-03-01", pickupTo: "2027-03-08", peakHoursFrom: "2027-03-05", storageFeePerDay: 1000 },
   asOf: "2026-10-21T07:00:00.000Z",
   prices: { classic: { today: 90, next: { from: "2026-12-01", price: 100 } }, double: { today: 120, next: { from: "2026-12-01", price: 130 } } },
   priceGrid: periods.flatMap((p) =>

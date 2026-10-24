@@ -11,6 +11,8 @@ export type PublicOrder = {
   holdUntil: string | null;
   prepaymentPct: PrepaymentPct;
   items: QuoteLine[];
+  storageFee: number; // the fridge until pickup, already in total
+  storageDays: number;
   total: number;
   paid: number;
   prepaymentDue: number;

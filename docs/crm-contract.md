@@ -10,7 +10,8 @@
 - `priceGrid` — для каждого правила `price_rules` и каждой точки 40 / 60 / 80 / 100, попадающей в полосу правила: `{ periodEnd: date_to, prepaymentPct, type, pricePerStem }`. На сайте период выбирается по `day <= periodEnd` (сетка должна быть без дыр с сегодняшнего дня).
 - `stock.status`: `many` при `available ≥ planned × stock_few_below_pct / 100` (настройка сезона, по умолчанию 30 %), `few` при `available > 0`, `none` при 0. `maxPacks = floor(available / pack_size)`; `available` — спека §9 (план + корректировки − брони − выдано), считается запросом, без кэша.
 - `season.id` — uuid сезона; `season.peakHoursFrom` — `settings.peak_hours_from`, может быть `""` (вечерних часов нет).
-- ТОО: в `clients` нет полей БИН и названия организации (спека §6) — `legalType = "too"` записывается в `orders.comment_client` строкой `ТОО «orgName», БИН bin` перед комментарием клиента.
+- Счёт: в `clients` нет полей БИН и названия организации (спека §6) — `legalType` записывается в `orders.comment_client` первой строкой: `Счёт на ТОО «orgName», БИН bin`, `Счёт на ИП` или `Счёт на физ. лицо` (`person`, ревизия 24.10.2026).
+- **Холодильник** (ревизия 24.10.2026): `season.storageFeePerDay` — ₸ в сутки за заказ (`settings.storage_fee_per_day`); при `storage: true` CRM берёт `storageFeePerDay × дни` от дня создания заказа до `pickupDate` и включает в `total` (предоплата — от всего `total`). Сайт считает то же самое для показа (`lib/order.ts` `storageDays`), CRM — окончательно. В `GET /public/orders/{token}` — `storageFee` и `storageDays`.
 - `invoice.expiresAt` — `null` до этапа G (Kaspi): CRM отдаёт ожидающий счёт Kaspi (`payments.status = pending`, `method = kaspi_invoice`) с суммой.
 - `events[].type`: `created`, `confirmed` / `prepaid` / `ready` / `issued` / `expired` / `cancelled` (смены статуса), `invoice` (выставлен счёт), `paid` (оплата). Сайт показывает `created / confirmed / invoice / paid` из словаря, остальные — заголовком статуса.
 - Ссылка с предзаполнением ведёт на **каталог** `/tulpan/sorta?c=TOKEN` (этап C): сайт кладёт токен в cookie `guldala_c` на 30 дней и подставляет контакты на оформлении `/tulpan/zakaz`, с какой бы страницы клиент туда ни пришёл; `?c=` прямо на `/tulpan/zakaz` тоже работает. Токен — uuid в `conversations.prefill_token`, срок 30 дней от `prefill_token_at`. `items` в ответе prefill CRM пока не отдаёт.
@@ -35,6 +36,7 @@
     pickupFrom: string;      // окно выдачи, seasons.pickup_from
     pickupTo: string;        // seasons.pickup_to
     peakHoursFrom: string;   // с этой даты выдача до 23:00, settings.peak_hours_from; "" = нет
+    storageFeePerDay: number; // холодильник, ₸ в сутки за заказ (settings.storage_fee_per_day)
   };
   asOf: string;              // ISO, момент расчёта «сегодня»
   prices: {
@@ -59,7 +61,7 @@
   pickupSlot: string;            // "08:00–12:00" … "21:00–23:00" — в CRM уходит начало слота
   pickupMethod: "self" | "client_truck";
   storage: boolean;
-  client: { company: string; name: string; phone: string /* +7… */; legalType: "ip" | "too"; bin?: string; orgName?: string };
+  client: { company: string; name: string; phone: string /* +7… */; legalType: "ip" | "too" | "person"; bin?: string; orgName?: string };
   comment: string;
   source: "site";
   prefillToken?: string;         // из ?c=TOKEN
@@ -80,6 +82,8 @@
   holdUntil: string | null;      // только для confirmed
   prepaymentPct: number;
   items: { productId: string; color: string; type: string; packs: number; stems: number; pricePerStem: number; sum: number }[];
+  storageFee: number;            // холодильник, уже в total; 0 — без хранения
+  storageDays: number;
   total: number;
   paid: number;
   prepaymentDue: number;

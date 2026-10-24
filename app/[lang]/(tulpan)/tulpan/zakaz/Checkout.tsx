@@ -11,7 +11,7 @@ import { waLink } from "@/content/site";
 import { groupOf, VARIETIES } from "@/content/varieties";
 import { tenge } from "@/lib/format";
 import { fmt, type Lang } from "@/lib/i18n";
-import { linesFromPicks, PACK_SIZE, quote, serializePicks, slotsFor } from "@/lib/order";
+import { linesFromPicks, PACK_SIZE, quote, serializePicks, slotsFor, storageDays } from "@/lib/order";
 import { almatyDay, PREPAYMENTS, pricePerStem } from "@/lib/pricing";
 import type { PrepaymentPct, SeasonCurrent } from "@/lib/season";
 import { submitOrder } from "./actions";
@@ -33,7 +33,8 @@ export function Checkout({ lang, data, t, labels, catalogHref, client, prefillTo
   const [pct, setPct] = useState<PrepaymentPct>(100);
   const [date, setDate] = useState("");
   const [slot, setSlot] = useState("");
-  const [legal, setLegal] = useState<"ip" | "too">("ip");
+  const [legal, setLegal] = useState<"ip" | "too" | "person">("ip");
+  const [storage, setStorage] = useState(false);
   const [state, action, pending] = useActionState(submitOrder, null);
   // Submit by hand: <form action> would reset every field even when the server only returns validation errors
   const submit = (e: FormEvent<HTMLFormElement>) => {
@@ -45,7 +46,10 @@ export function Checkout({ lang, data, t, labels, catalogHref, client, prefillTo
   const day = almatyDay(new Date(data.asOf));
   const lineOf = (v: (typeof VARIETIES)[number]) => data.stock.find((s) => s.color === v.color && s.type === v.type);
   const chosen = VARIETIES.filter((v) => picks[v.slug] && lineOf(v));
-  const q = quote(data, linesFromPicks(picks, chosen, data.stock).lines, pct, day);
+  // the fridge: every day from today to pickup, at the season's rate (the CRM counts the same on save)
+  const perDay = data.season.storageFeePerDay;
+  const days = storage ? storageDays(day, date) : 0;
+  const q = quote(data, linesFromPicks(picks, chosen, data.stock).lines, pct, day, days * perDay);
   const slots = slotsFor(data.season, date);
   const price = (type: "classic" | "double") => pricePerStem(data.priceGrid, type, pct, day);
   const blocked = pending || !q.lines.length || q.missingStems > 0 || q.closed || q.overStock.length > 0;
@@ -146,16 +150,23 @@ export function Checkout({ lang, data, t, labels, catalogHref, client, prefillTo
               </label>
             ))}
           </fieldset>
-          <label className="flex min-h-11 items-center gap-3 text-sm sm:col-span-2">
-            <input type="checkbox" name="storage" className="size-5 accent-accent" />
-            {t.storage}
-          </label>
+          <div className="sm:col-span-2">
+            <label className="flex min-h-11 items-center gap-3 text-sm">
+              <input type="checkbox" name="storage" checked={storage} onChange={(e) => setStorage(e.target.checked)} className="size-5 accent-accent" />
+              {fmt(t.storage, { fee: tenge(perDay) })}
+            </label>
+            {storage && (
+              <p className="mt-1 pl-8 text-xs text-muted" aria-live="polite">
+                {date ? fmt(t.storageLine, { days, fee: tenge(perDay) }) + ` = ${tenge(q.fee)}` : t.storageDate}
+              </p>
+            )}
+          </div>
         </fieldset>
 
         <fieldset className="grid gap-4 rounded-2xl border border-line p-5 sm:grid-cols-2">
           <legend className="px-1 text-lg font-semibold">{t.contactsTitle}</legend>
-          <Field label={t.company}>
-            <input name="company" required maxLength={200} autoComplete="organization" defaultValue={client?.company} className={inputCls} />
+          <Field label={legal === "person" ? t.companyOptional : t.company}>
+            <input name="company" required={legal !== "person"} maxLength={200} autoComplete="organization" defaultValue={client?.company} className={inputCls} />
           </Field>
           <Field label={t.name}>
             <input name="name" required maxLength={200} autoComplete="name" defaultValue={client?.name} className={inputCls} />
@@ -165,11 +176,11 @@ export function Checkout({ lang, data, t, labels, catalogHref, client, prefillTo
           </Field>
           <fieldset className="grid gap-1.5 text-sm">
             <legend className="mb-1.5 font-medium">{t.legal}</legend>
-            <div className="flex gap-4">
-              {(["ip", "too"] as const).map((l) => (
+            <div className="flex flex-wrap gap-x-4">
+              {(["ip", "too", "person"] as const).map((l) => (
                 <label key={l} className="flex min-h-11 items-center gap-2">
                   <input type="radio" name="legal" value={l} checked={legal === l} onChange={() => setLegal(l)} className="size-5 accent-accent" />
-                  {l === "ip" ? t.ip : t.too}
+                  {t[l]}
                 </label>
               ))}
             </div>
@@ -199,6 +210,12 @@ export function Checkout({ lang, data, t, labels, catalogHref, client, prefillTo
             <dt className="text-sm text-muted">{t.total}</dt>
             <dd className="font-display text-3xl font-extrabold tabular-nums">{tenge(q.total)}</dd>
           </div>
+          {q.fee > 0 && (
+            <div className="flex items-baseline justify-between gap-3 border-t border-line pt-3">
+              <dt className="text-sm">{fmt(t.storageLine, { days, fee: tenge(perDay) })}</dt>
+              <dd className="font-semibold tabular-nums">{tenge(q.fee)}</dd>
+            </div>
+          )}
           <div className="flex items-baseline justify-between gap-3 border-t border-line pt-3">
             <dt className="text-sm">{fmt(t.prepay, { pct })}</dt>
             <dd className="font-semibold tabular-nums">{tenge(q.prepayment)}</dd>

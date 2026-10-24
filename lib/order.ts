@@ -11,6 +11,7 @@ export type QuoteLine = OrderLine & { color: ColorId; type: TulipType; stems: nu
 export type Quote = {
   lines: QuoteLine[];
   stems: number;
+  fee: number; // the fridge, in total
   total: number;
   prepayment: number;
   remainder: number;
@@ -22,11 +23,16 @@ export type Quote = {
 
 export const prepaymentAmount = (total: number, pct: number) => Math.ceil((total * pct) / 100);
 
+// The fridge until pickup is paid by the day from the order day, as the CRM counts it (crm/lib/calc.ts)
+export const storageDays = (day: string, pickupDate: string) =>
+  pickupDate ? Math.max(0, Math.round((Date.parse(pickupDate) - Date.parse(day)) / 86_400_000)) : 0;
+
 export function quote(
   season: Pick<SeasonCurrent, "priceGrid" | "stock">,
   order: OrderLine[],
   pct: PrepaymentPct,
   day: string,
+  fee = 0,
 ): Quote {
   const lines: QuoteLine[] = [];
   const overStock: string[] = [];
@@ -51,11 +57,12 @@ export function quote(
   }
 
   const stems = lines.reduce((a, l) => a + l.stems, 0);
-  const total = lines.reduce((a, l) => a + l.sum, 0);
+  const total = lines.reduce((a, l) => a + l.sum, 0) + fee;
   const prepayment = prepaymentAmount(total, pct);
   return {
     lines,
     stems,
+    fee,
     total,
     prepayment,
     remainder: total - prepayment,

@@ -9,5 +9,5 @@ export const contentType = "image/png";
 
 export default async function Image({ params }: { params: Promise<{ lang: string }> }) {
   const t = (await params).lang === "kz" ? kz : ru;
-  return ogCard("Guldala", t.tulpan.h1, COLOR_IDS.map((c) => COLOR_HEX[c]));
+  return ogCard("Guldala", t.home.h1, COLOR_IDS.map((c) => COLOR_HEX[c]));
 }
