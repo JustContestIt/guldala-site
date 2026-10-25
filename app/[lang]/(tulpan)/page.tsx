@@ -3,6 +3,7 @@ import { connection } from "next/server";
 import { Suspense } from "react";
 import rows from "@/assets/greenhouse-rows.jpg";
 import greenhouse from "@/assets/greenhouse-wide.jpg";
+import { Faq } from "@/components/Faq";
 import { GreenhouseMap } from "@/components/GreenhouseMap";
 import { Icon, type IconName } from "@/components/icons";
 import { OrderSteps } from "@/components/OrderSteps";
@@ -191,17 +192,7 @@ async function HomeBody() {
 
       <section className="shell py-12 md:py-16">
         <SectionTitle title={t.home.faqTitle} />
-        <div className="max-w-3xl divide-y divide-line border-y border-line">
-          {t.faq.map((f) => (
-            <details key={f.q} className="group">
-              <summary className="flex min-h-14 list-none items-center justify-between gap-4 py-3 font-semibold [&::-webkit-details-marker]:hidden">
-                {f.q}
-                <Icon name="chevron" className="size-5 transition-transform group-open:rotate-180" />
-              </summary>
-              <p className="pb-4 text-muted">{f.a}</p>
-            </details>
-          ))}
-        </div>
+        <Faq />
       </section>
 
       <section className="border-t border-line">

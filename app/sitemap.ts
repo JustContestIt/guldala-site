@@ -10,6 +10,7 @@ const PATHS = [
   ...VARIETIES.map((v) => `/tulpan/sorta/${v.slug}`),
   "/tulpan/zakaz",
   "/o-nas",
+  "/voprosy",
   "/kontakty",
 ];
 

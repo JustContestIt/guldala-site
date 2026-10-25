@@ -2,6 +2,7 @@ import Link from "next/link";
 import rows from "@/assets/greenhouse-rows.jpg";
 import packs from "@/assets/packs.jpg";
 import { Suspense } from "react";
+import { Faq } from "@/components/Faq";
 import { Icon } from "@/components/icons";
 import { OrderSteps } from "@/components/OrderSteps";
 import { Photo } from "@/components/Photo";
@@ -147,6 +148,11 @@ async function TulpanBody() {
       <section className="shell pb-12 md:pb-16">
         <SectionTitle title={t.tulpan.stepsTitle} />
         <OrderSteps />
+      </section>
+
+      <section className="shell pb-12 md:pb-16">
+        <SectionTitle title={t.home.faqTitle} />
+        <Faq />
       </section>
     </>
   );

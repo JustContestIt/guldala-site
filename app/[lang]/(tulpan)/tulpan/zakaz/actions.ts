@@ -49,8 +49,9 @@ export async function submitOrder(_: OrderState, fd: FormData): Promise<OrderSta
   if (q.closed) errors.push("closed");
   if (q.overStock.length) errors.push("stock");
   if (q.missingStems > 0) errors.push("min");
-  if (!slotsFor(season, date).length) errors.push("date");
-  else if (!slotsFor(season, date).includes(slot)) errors.push("slot");
+  const slots = slotsFor(season, date, day);
+  if (!slots.length) errors.push("date");
+  else if (!slots.includes(slot)) errors.push("slot");
   if (!company && legal !== "person") errors.push("company");
   if (!name) errors.push("name");
   if (!phone) errors.push("phone");

@@ -22,6 +22,7 @@ export async function Header({ botanica = false }: { botanica?: boolean }) {
         [href("/tulpan"), t.nav.tulpan],
         [href("/tulpan/sorta"), t.nav.sorta],
         [href("/o-nas"), t.nav.about],
+        [href("/voprosy"), t.nav.faq],
         [href("/kontakty"), t.nav.contacts],
       ];
   const wa = waLink(botanica ? t.wa.botanica : t.wa.hello);
@@ -31,7 +32,7 @@ export async function Header({ botanica = false }: { botanica?: boolean }) {
         <Link href={href("/")} className="font-display text-xl font-extrabold tracking-tight">
           {botanica ? "Guldala Botanica" : "Guldala"}
         </Link>
-        <nav aria-label={t.nav.main} className="hidden md:block">
+        <nav aria-label={t.nav.main} className="hidden lg:block">
           <ul className="flex gap-6 text-sm">
             {nav.map(([to, label]) => (
               <li key={to}>
@@ -43,7 +44,7 @@ export async function Header({ botanica = false }: { botanica?: boolean }) {
           </ul>
         </nav>
         <div className="ml-auto flex items-center gap-3">
-          <LangSwitch lang={lang} label={t.nav.lang} className="hidden md:flex" />
+          <LangSwitch lang={lang} label={t.nav.lang} className="hidden lg:flex" />
           <ButtonLink href={wa} className="hidden sm:inline-flex">
             <Icon name="chat" /> {t.wa.short}
           </ButtonLink>

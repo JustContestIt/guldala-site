@@ -1,7 +1,8 @@
 import { Suspense } from "react";
 import { Catalog, type CatalogItem } from "@/components/Catalog";
+import { Faq } from "@/components/Faq";
 import { OrderBar } from "@/components/Picks";
-import { Ph } from "@/components/ui";
+import { SectionTitle } from "@/components/ui";
 import { VarietyCard, VarietyRow } from "@/components/VarietyCard";
 import { VarietyInfo, VarietyPhotos } from "@/components/VarietyInfo";
 import { isTall, VARIETIES } from "@/content/varieties";
@@ -20,13 +21,18 @@ export default async function SortaPage({ searchParams }: PageProps<"/[lang]/tul
     <div className="bg-surface pb-28">
       <div className="shell pt-10 pb-2 md:pt-14">
         <h1 className="text-3xl sm:text-4xl">{t.sorta.h1}</h1>
-        <p className="mt-2 max-w-2xl text-muted">
-          {t.sorta.lead(VARIETIES.length)} <Ph>{t.ph.varieties}</Ph>
-        </p>
+        <p className="mt-2 max-w-2xl text-muted">{t.sorta.lead(VARIETIES.length)}</p>
       </div>
-      <Suspense fallback={<p className="shell py-20 text-muted">{t.sorta.loading}</p>}>
-        <Varieties searchParams={searchParams} />
-      </Suspense>
+      {/* the filter bar sticks only while the varieties are on screen, not over the questions under them */}
+      <div>
+        <Suspense fallback={<p className="shell py-20 text-muted">{t.sorta.loading}</p>}>
+          <Varieties searchParams={searchParams} />
+        </Suspense>
+      </div>
+      <section className="shell pt-12 md:pt-16">
+        <SectionTitle title={t.home.faqTitle} />
+        <Faq />
+      </section>
     </div>
   );
 }

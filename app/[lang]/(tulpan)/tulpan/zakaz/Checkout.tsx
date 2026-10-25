@@ -61,7 +61,7 @@ export function Checkout({ lang, data, t, labels, catalogHref, client, prefillTo
   const perDay = data.season.storageFeePerDay;
   const days = storage ? storageDays(day, date) : 0;
   const q = quote(data, linesFromPicks(picks, chosen, data.stock).lines, pct, day, days * perDay);
-  const slots = slotsFor(data.season, date);
+  const slots = slotsFor(data.season, date, day);
   const price = (type: "classic" | "double") => pricePerStem(data.priceGrid, type, pct, day);
   const blocked = pending || !q.lines.length || q.missingStems > 0 || q.closed || q.overStock.length > 0;
   const classic = price("classic");
@@ -142,7 +142,7 @@ export function Checkout({ lang, data, t, labels, catalogHref, client, prefillTo
         <fieldset className="grid gap-4 rounded-2xl border border-line p-5 sm:grid-cols-2">
           <legend className="px-1 text-lg font-semibold">{t.pickupTitle}</legend>
           <Field label={t.date} hint={t.dateHint} error={t.errors.date}>
-            <input type="date" name="date" required min={data.season.pickupFrom} max={data.season.pickupTo} value={date} onChange={(e) => setDate(e.target.value)} className={inputCls} />
+            <input type="date" name="date" required min={day > data.season.pickupFrom ? day : data.season.pickupFrom} max={data.season.pickupTo} value={date} onChange={(e) => setDate(e.target.value)} className={inputCls} />
           </Field>
           <Field label={t.slot} error={t.errors.slot}>
             <select name="slot" required disabled={!slots.length} className={inputCls} value={slots.includes(slot) ? slot : ""} onChange={(e) => setSlot(e.target.value)}>
@@ -220,6 +220,10 @@ export function Checkout({ lang, data, t, labels, catalogHref, client, prefillTo
           <div>
             <dt className="text-sm text-muted">{t.total}</dt>
             <dd className="font-display text-3xl font-extrabold tabular-nums">{tenge(q.total)}</dd>
+          </div>
+          <div className="flex items-baseline justify-between gap-3 border-t border-line pt-3">
+            <dt className="text-sm">{fmt(t.flowers, { n: q.stems })}</dt>
+            <dd className="font-semibold tabular-nums">{tenge(q.total - q.fee)}</dd>
           </div>
           {q.fee > 0 && (
             <div className="flex items-baseline justify-between gap-3 border-t border-line pt-3">

@@ -112,8 +112,9 @@ export const serializePicks = (p: Picks) =>
 const SLOTS = ["08:00–12:00", "12:00–15:00", "15:00–18:00"];
 const PEAK_SLOTS = [...SLOTS, "18:00–21:00", "21:00–23:00"];
 
-// Pickup hours: 8:00–18:00, from peakHoursFrom until 8 March — till 23:00
-export function slotsFor(season: SeasonCurrent["season"], date: string): string[] {
-  if (!date || date < season.pickupFrom || date > season.pickupTo) return [];
+// Pickup hours: 8:00–18:00, from peakHoursFrom until 8 March — till 23:00.
+// today: the season's window may open months before the peak (from the day orders open), but never in the past
+export function slotsFor(season: SeasonCurrent["season"], date: string, today: string): string[] {
+  if (!date || date < today || date < season.pickupFrom || date > season.pickupTo) return [];
   return season.peakHoursFrom && date >= season.peakHoursFrom ? PEAK_SLOTS : SLOTS;
 }

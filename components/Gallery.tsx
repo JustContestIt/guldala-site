@@ -11,13 +11,15 @@ export function Gallery({ slides, thumbs, label }: { slides: ReactNode[]; thumbs
   const go = (n: number) => strip.current?.scrollTo({ left: n * strip.current.clientWidth, behavior: "smooth" });
   return (
     <>
+      {/* The strip sticks out 8px on each side and every slide pads its photo by as much: a gap between photos while
+          swiping, yet one slide is still exactly the strip's width, so the slide's number is scrollLeft / width */}
       <div
         ref={strip}
         onScroll={(e) => setShown(Math.round(e.currentTarget.scrollLeft / e.currentTarget.clientWidth))}
-        className="flex snap-x snap-mandatory overflow-x-auto overscroll-x-contain rounded-2xl [scrollbar-width:none]"
+        className="-mx-2 flex snap-x snap-mandatory overflow-x-auto overscroll-x-contain [scrollbar-width:none]"
       >
         {slides.map((s, n) => (
-          <div key={n} className="w-full shrink-0 snap-center">
+          <div key={n} className="w-full shrink-0 snap-center px-2">
             {s}
           </div>
         ))}

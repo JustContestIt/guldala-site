@@ -71,9 +71,10 @@ describe("order quote", () => {
   });
 
   it("offers evening slots only on peak days inside the pickup window", () => {
-    expect(slotsFor(season.season, "2027-03-02")).toHaveLength(3);
-    expect(slotsFor(season.season, "2027-03-06")).toContain("21:00–23:00");
-    expect(slotsFor(season.season, "2027-03-09")).toEqual([]);
-    expect(slotsFor({ ...season.season, peakHoursFrom: "" }, "2027-03-06")).toHaveLength(3); // the CRM sends "" = no evening hours
+    expect(slotsFor(season.season, "2027-03-02", "2026-10-25")).toHaveLength(3);
+    expect(slotsFor(season.season, "2027-03-06", "2026-10-25")).toContain("21:00–23:00");
+    expect(slotsFor(season.season, "2027-03-09", "2026-10-25")).toEqual([]);
+    expect(slotsFor(season.season, "2027-03-02", "2027-03-03")).toEqual([]); // inside the window, but already past
+    expect(slotsFor({ ...season.season, peakHoursFrom: "" }, "2027-03-06", "2026-10-25")).toHaveLength(3); // the CRM sends "" = no evening hours
   });
 });
