@@ -1,12 +1,9 @@
 import { Suspense } from "react";
 import { Catalog, type CatalogItem } from "@/components/Catalog";
-import { Photo } from "@/components/Photo";
 import { OrderBar } from "@/components/Picks";
 import { Ph } from "@/components/ui";
 import { VarietyCard, VarietyRow } from "@/components/VarietyCard";
-import { VarietyInfo } from "@/components/VarietyInfo";
-import { SHADE_HEX } from "@/content/colors";
-import { VARIETY_PHOTOS } from "@/content/variety-photos";
+import { VarietyInfo, VarietyPhotos } from "@/components/VarietyInfo";
 import { isTall, VARIETIES } from "@/content/varieties";
 import { getDict, pageMeta } from "@/lib/dict";
 import { isToken } from "@/lib/orders";
@@ -45,7 +42,6 @@ async function Varieties({ searchParams }: { searchParams: PageProps<"/[lang]/tu
     const p = { v, status: line?.status ?? "none", max: line?.maxPacks ?? 0 };
     const [shade] = v.shades;
     const twoTone = v.shades.length > 1;
-    const [photo] = VARIETY_PHOTOS[v.slug] ?? [];
     return {
       slug: v.slug,
       name: v.name,
@@ -59,8 +55,7 @@ async function Varieties({ searchParams }: { searchParams: PageProps<"/[lang]/tu
       row: <VarietyRow {...p} />,
       detail: (
         <>
-          <Photo label={photo ? v.name : t.photos.bud} src={photo} ratio="1/1" swatch={SHADE_HEX[shade]} sizes="(min-width: 640px) 512px, 100vw" />
-          {photo && <p className="mt-2 text-xs text-muted">{t.variety.photoCredit}</p>}
+          <VarietyPhotos v={v} ratio="1/1" sizes="(min-width: 640px) 512px, 100vw" />
           <h2 className="mt-5 text-2xl">{v.name}</h2>
           <VarietyInfo {...p} price={prices[v.type].today} />
         </>

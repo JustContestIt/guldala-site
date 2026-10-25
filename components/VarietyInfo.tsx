@@ -1,13 +1,33 @@
 import type { ReactNode } from "react";
 import { SHADE_HEX } from "@/content/colors";
 import { waLink } from "@/content/site";
+import { VARIETY_PHOTOS } from "@/content/variety-photos";
 import { groupOf, type Variety } from "@/content/varieties";
 import { getDict } from "@/lib/dict";
 import { tenge } from "@/lib/format";
 import type { StockStatus } from "@/lib/season";
+import { Gallery } from "./Gallery";
 import { Icon } from "./icons";
+import { Photo } from "./Photo";
 import { PickStepper } from "./Picks";
 import { ButtonLink, ColorDot, Ph, StockBadge } from "./ui";
+
+// The variety's photos with the credit under them (or a placeholder): in the catalog's window and on its page
+export async function VarietyPhotos({ v, ratio, sizes, priority, className }: { v: Variety; ratio: "4/5" | "1/1"; sizes: string; priority?: boolean; className?: string }) {
+  const { t } = await getDict();
+  const photos = VARIETY_PHOTOS[v.slug] ?? [];
+  const slides = photos.length
+    ? photos.map((p, n) => (
+        <Photo key={p.src} label={n ? `${v.name}, ${n + 1}` : v.name} src={p} priority={priority && !n} ratio={ratio} sizes={sizes} className={className} />
+      ))
+    : [<Photo key="" label={t.photos.bud} ratio={ratio} swatch={SHADE_HEX[v.shades[0]]} className={className} />];
+  return (
+    <>
+      <Gallery slides={slides} thumbs={photos} label={v.name} />
+      {photos.length > 0 && <p className="mt-2 text-xs text-muted">{t.variety.photoCredit}</p>}
+    </>
+  );
+}
 
 // Everything under a variety's name: on its page and in the catalog's window. price: per stem today at 100 % prepayment
 export async function VarietyInfo({ v, status, max, price }: { v: Variety; status: StockStatus; max: number; price: number }) {

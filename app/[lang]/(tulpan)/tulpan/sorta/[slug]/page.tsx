@@ -2,12 +2,9 @@ import type { Metadata } from "next";
 import { Suspense } from "react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { Photo } from "@/components/Photo";
 import { OrderBar } from "@/components/Picks";
 import { VarietyCard } from "@/components/VarietyCard";
-import { VarietyInfo } from "@/components/VarietyInfo";
-import { SHADE_HEX } from "@/content/colors";
-import { VARIETY_PHOTOS } from "@/content/variety-photos";
+import { VarietyInfo, VarietyPhotos } from "@/components/VarietyInfo";
 import { VARIETIES, type Variety } from "@/content/varieties";
 import { getDict, pageMeta } from "@/lib/dict";
 import { getSeason } from "@/lib/season";
@@ -43,7 +40,6 @@ async function VarietyBody({ v }: { v: Variety }) {
   const similar = VARIETIES.filter((x) => x.slug !== v.slug && x.color === v.color)
     .concat(VARIETIES.filter((x) => x.slug !== v.slug && x.color !== v.color && x.type === v.type))
     .slice(0, 4);
-  const [photo, ...more] = VARIETY_PHOTOS[v.slug] ?? [];
 
   return (
     <div className="shell pt-8 pb-28 md:pt-12">
@@ -55,25 +51,7 @@ async function VarietyBody({ v }: { v: Variety }) {
 
       <div className="mt-6 grid gap-8 lg:grid-cols-[1.3fr_1fr]">
         <div className="self-start">
-          <Photo
-            label={photo ? v.name : t.photos.bud}
-            src={photo}
-            priority
-            ratio="4/5"
-            swatch={SHADE_HEX[v.shades[0]]}
-            sizes="(min-width: 1024px) 55vw, 100vw"
-            className="max-sm:aspect-[4/3]!"
-          />
-          {more.length > 0 && (
-            <ul className="mt-3 grid grid-cols-2 gap-3">
-              {more.map((p, i) => (
-                <li key={p.src}>
-                  <Photo label={`${v.name}, ${i + 2}`} src={p} ratio="1/1" sizes="(min-width: 1024px) 27vw, 50vw" />
-                </li>
-              ))}
-            </ul>
-          )}
-          {photo && <p className="mt-2 text-xs text-muted">{t.variety.photoCredit}</p>}
+          <VarietyPhotos v={v} priority ratio="4/5" sizes="(min-width: 1024px) 55vw, 100vw" className="max-sm:aspect-[4/3]!" />
         </div>
 
         <div className="self-start lg:sticky lg:top-24">
