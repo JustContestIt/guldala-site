@@ -264,6 +264,8 @@ export const kz: Dict = {
     ask: "WhatsApp-та сұрау",
     similar: "Ұқсас сорттар",
     photoCredit: "Фото: Haakman Flowerbulbs",
+    prevPhoto: "Алдыңғы фото",
+    nextPhoto: "Келесі фото",
   },
 
   calc: {

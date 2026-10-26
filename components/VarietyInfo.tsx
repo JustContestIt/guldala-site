@@ -23,7 +23,7 @@ export async function VarietyPhotos({ v, ratio, sizes, priority, className }: { 
     : [<Photo key="" label={t.photos.bud} ratio={ratio} swatch={SHADE_HEX[v.shades[0]]} className={className} />];
   return (
     <>
-      <Gallery slides={slides} thumbs={photos} label={v.name} />
+      <Gallery slides={slides} thumbs={photos} label={v.name} t={{ prev: t.variety.prevPhoto, next: t.variety.nextPhoto }} />
       {photos.length > 0 && <p className="mt-2 text-xs text-muted">{t.variety.photoCredit}</p>}
     </>
   );

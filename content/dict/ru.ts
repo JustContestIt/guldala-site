@@ -249,6 +249,8 @@ export const ru = {
     ask: "Спросить в WhatsApp",
     similar: "Похожие сорта",
     photoCredit: "Фото: Haakman Flowerbulbs",
+    prevPhoto: "Предыдущее фото",
+    nextPhoto: "Следующее фото",
   },
 
   // Plain strings with {placeholders}: handed to the client calculator

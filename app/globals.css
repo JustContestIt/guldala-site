@@ -48,6 +48,11 @@ html:has(dialog[open]) {
 }
 
 @layer base {
+  /* A thin scrollbar in the site's green instead of the system grey (Windows; macOS and phones overlay their own) */
+  html {
+    scrollbar-width: thin;
+    scrollbar-color: color-mix(in oklab, var(--color-accent) 45%, transparent) transparent;
+  }
   h1,
   h2,
   h3 {
