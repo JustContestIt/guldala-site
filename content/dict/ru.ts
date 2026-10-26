@@ -106,7 +106,7 @@ export const ru = {
   },
 
   photos: {
-    homeHero: "Красные тюльпаны Guldala в пачках, в крафте",
+    homeHero: "Ряды тюльпанов в теплице Guldala",
     colorCloseup: (label: string) => `${label.toLowerCase()} тюльпаны крупно`,
     doublesCloseup: "махровые тюльпаны крупно",
     tulpanHero: "Тюльпаны в ящиках по сортам, теплица Guldala",

@@ -123,7 +123,7 @@ export const kz: Dict = {
   },
 
   photos: {
-    homeHero: "Крафтқа оралған қызыл қызғалдақ баулары, Guldala",
+    homeHero: "Guldala жылыжайындағы қызғалдақ қатарлары",
     colorCloseup: (label: string) => `${lower(label)} қызғалдақтар жақыннан`,
     doublesCloseup: "қос күлтелі қызғалдақтар жақыннан",
     tulpanHero: "Сорттар бойынша жәшіктердегі қызғалдақтар, Guldala жылыжайы",
