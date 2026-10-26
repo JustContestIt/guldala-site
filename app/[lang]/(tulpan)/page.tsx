@@ -18,6 +18,8 @@ import { tenge } from "@/lib/format";
 import { cachedSeason } from "@/lib/season";
 
 const WHY_ICONS: IconName[] = ["leaf", "pin", "tag", "box", "card", "calendar"];
+// «Стандарт качества»: the stem range of the season's varieties ("40–45" → 40, 45); stemValue is just «N см»
+const heights = VARIETIES.flatMap((v) => v.height?.split("–").map(Number) ?? []);
 const chip = "rounded-full border border-line px-4 py-2 text-sm";
 
 export async function generateMetadata() {
@@ -164,16 +166,14 @@ async function HomeBody() {
               <dl className="mt-3 grid gap-2 text-sm">
                 {(
                   [
-                    [t.home.stem, t.ph.stem],
-                    [t.home.glass, t.ph.glass],
-                    [t.home.bulb, t.ph.bulb],
+                    [t.home.stem, t.home.stemValue(`${Math.min(...heights)}–${Math.max(...heights)}`)],
+                    [t.home.glass, t.variety.stemValue("8–10")], // Strong Love's flower (Nikita, 26.10.2026)
+                    [t.home.bulb, t.home.bulbValue],
                   ] as const
                 ).map(([k, v]) => (
                   <div key={k} className="flex justify-between gap-4 border-b border-line pb-2 last:border-0">
                     <dt className="text-muted">{k}</dt>
-                    <dd>
-                      <Ph>{v}</Ph>
-                    </dd>
+                    <dd className="text-right">{v}</dd>
                   </div>
                 ))}
               </dl>

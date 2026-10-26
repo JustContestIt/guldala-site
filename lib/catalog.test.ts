@@ -51,6 +51,6 @@ it("puts cream varieties in the white line, but filters them as cream", () => {
   expect([fondue.color, fondue.shades[0]]).toEqual(["white", "cream"]);
   expect(shadesOf({ color: "white", type: "classic" })).toEqual(["white", "cream"]);
   expect(VARIETIES.filter(isTall).map((v) => v.slug)).toEqual([
-    "body-builder", "roman-empire", "polar-bear", "memphis", "sissi", "tresor", "fortress", "delta-storm",
+    "body-builder", "roman-empire", "polar-bear", "memphis", "sissi", "tresor", "novi-sun", "fortress", "delta-storm",
   ]);
 });

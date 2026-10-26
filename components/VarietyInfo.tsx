@@ -37,7 +37,6 @@ export async function VarietyInfo({ v, status, max, price }: { v: Variety; statu
     [t.variety.color, [t.colors[shade], v.shades.length > 1 && t.sorta.ui.twoTone.toLocaleLowerCase(t.locale)].filter(Boolean).join(", ")],
     [t.variety.type, t.types[v.type]],
     [t.variety.stem, v.height ? t.variety.stemValue(v.height) : <Ph>{t.ph.stem}</Ph>],
-    [t.variety.vase, v.vaseLife ? t.variety.vaseValue(v.vaseLife) : <Ph>{t.ph.vase}</Ph>],
   ];
   return (
     <>

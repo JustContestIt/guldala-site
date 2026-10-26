@@ -9,12 +9,11 @@ export type Variety = {
   shades: Shade[]; // the flower's own colors, main first; two of them = a two-tone variety
   type: TulipType;
   height?: string; // plant height in cm from the bulb exporters, "40–45"
-  vaseLife?: number;
   description: Record<Lang, string>;
 };
 
 // Season 2027 bulb order (../bulb-order-2027.md). Height: Dutch bulb exporters (Haakman, Jan de Wit, P. Aker and others),
-// checked 23.10.2026. Shades, type and descriptions: Haakman's props («красный/жёлтый») and photos, checked 25.10.2026.
+// checked 23.10.2026; Novi Sun — RHS and A.D.R. Bulbs, 26.10.2026. Shades, type and descriptions: Haakman's props («красный/жёлтый») and photos, checked 25.10.2026.
 // The main shade picks the stock line: cream sits under white, lilac-pink under pink, two-tone under its main color —
 // Tatiana confirms the grouping.
 const v = (slug: string, name: string, shades: Shade[], type: TulipType, height: string | undefined, ru: string, kz: string): Variety => {
@@ -48,7 +47,7 @@ export const VARIETIES: Variety[] = [
   v("mariage", "Mariage", ["pink"], "double", "45", "Нежно-розовый пионовидный цветок, бывает несколько цветков на стебле, стебель прочный.", "Нәзік қызғылт пион тәрізді гүл, кейде бір сабақта бірнеше гүл, сабағы берік."),
   v("strong-gold", "Strong Gold", ["yellow"], "classic", "45–55", "Насыщенный золотисто-жёлтый цветок 8–10 см на прочном стебле, один из главных сортов на срезку.", "Берік сабақтағы 8–10 см қанық алтын-сары гүл, кесуге арналған негізгі сорттардың бірі."),
   v("cheers", "Cheers", ["yellow"], "classic", "40–50", "Бледно-жёлтый цветок, к раскрытию светлеет до цвета слоновой кости.", "Бозғылт сары гүл, ашылған сайын піл сүйегі түсіне дейін ағарады."),
-  v("novi-sun", "Novi Sun", ["yellow"], "classic", undefined, "Дарвинов гибрид: крупный бокал с ярко-жёлтыми лепестками.", "Дарвин гибриді: күлтелері ашық сары ірі тостаған."),
+  v("novi-sun", "Novi Sun", ["yellow"], "classic", "50–60", "Дарвинов гибрид: крупный бокал с ярко-жёлтыми лепестками.", "Дарвин гибриді: күлтелері ашық сары ірі тостаған."),
   v("cadenza", "Cadenza", ["yellow"], "double", "40", "Лимонно-жёлтый махровый цветок, плотный и округлый.", "Лимон-сары қос күлтелі гүл, тығыз әрі домалақ."),
   v("bullit", "Bullit", ["purple"], "classic", "45", "Насыщенно-фиолетовый с атласным блеском, плотный вытянутый бокал на прочном стебле.", "Атлас жылтырлы қанық күлгін, тығыз созылыңқы тостаған, сабағы берік."),
   v("fortress", "Fortress", ["purple"], "classic", "55", "Сиренево-фиолетовый с розовым отливом, крупный бокал, длинный стебель.", "Қызғылт реңкті сиреньді-күлгін, тостағаны ірі, сабағы ұзын."),

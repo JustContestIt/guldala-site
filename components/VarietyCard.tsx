@@ -14,7 +14,7 @@ import { ColorDot, StockBadge } from "./ui";
 type Props = { v: Variety; status: StockStatus; max: number };
 
 export async function VarietyCard({ v, status, max }: Props) {
-  const { t, href } = await getDict();
+  const { lang, t, href } = await getDict();
   const page = href(`/tulpan/sorta/${v.slug}`);
   const [photo] = VARIETY_PHOTOS[v.slug] ?? [];
   return (
@@ -42,6 +42,7 @@ export async function VarietyCard({ v, status, max }: Props) {
             </li>
           ))}
         </ul>
+        <p className="mt-2 text-sm text-muted">{v.description[lang]}</p>
         <div className="mt-3">
           <StockBadge status={status} t={t.stock} />
         </div>
