@@ -87,7 +87,7 @@ export function Checkout({ lang, data, t, labels, catalogHref, client, prefillTo
                   const stems = picks[v.slug] * PACK_SIZE;
                   const p = price(v.type);
                   return (
-                    <li key={v.slug} className="grid grid-cols-[1fr_8.5rem] items-center gap-3 py-3">
+                    <li key={v.slug} className="grid grid-cols-[1fr_10rem] items-center gap-3 py-3">
                       <div className="min-w-0">
                         <p className="font-semibold">{v.name}</p>
                         <p className="mt-0.5 flex items-center gap-2 text-sm text-muted">
@@ -146,7 +146,7 @@ export function Checkout({ lang, data, t, labels, catalogHref, client, prefillTo
           </Field>
           <Field label={t.slot} error={t.errors.slot}>
             <select name="slot" required disabled={!slots.length} className={inputCls} value={slots.includes(slot) ? slot : ""} onChange={(e) => setSlot(e.target.value)}>
-              <option value="" disabled>{slots.length ? "—" : t.slotFirst}</option>
+              <option value="" disabled>{slots.length ? t.errors.slot : t.slotFirst}</option>
               {slots.map((s) => (
                 <option key={s} value={s}>{s}</option>
               ))}

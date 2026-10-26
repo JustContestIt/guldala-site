@@ -17,8 +17,8 @@ export async function generateMetadata({ params }: PageProps<"/[lang]/tulpan/sor
   const { slug } = await params;
   const v = VARIETIES.find((x) => x.slug === slug);
   if (!v) return {};
-  const { t } = await getDict();
-  return pageMeta(`/tulpan/sorta/${slug}`, t.meta.variety(v.name, t.product(v.color, v.type)));
+  const { lang, t } = await getDict();
+  return pageMeta(`/tulpan/sorta/${slug}`, t.meta.variety(v.name, t.product(v.color, v.type)), v.description[lang]);
 }
 
 export default async function VarietyPage({ params }: PageProps<"/[lang]/tulpan/sorta/[slug]">) {

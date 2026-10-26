@@ -2,7 +2,7 @@ import Link from "next/link";
 import { connection } from "next/server";
 import { Suspense } from "react";
 import rows from "@/assets/greenhouse-rows.jpg";
-import greenhouse from "@/assets/greenhouse-wide.jpg";
+import packs from "@/assets/packs.jpg";
 import { Faq } from "@/components/Faq";
 import { GreenhouseMap } from "@/components/GreenhouseMap";
 import { Icon, type IconName } from "@/components/icons";
@@ -52,13 +52,13 @@ async function HomeBody() {
   return (
     <>
       <section className="relative">
-        {/* on a phone the card covers the lower half, so the photo is zoomed 1.5× towards the tulip rows: drawn ~4.5 screens wide */}
+        {/* our packs in kraft (Nikita: the greenhouse tent shot wasn't pretty enough, 26.10.2026); upright, so a phone sees nearly all of it */}
         <Photo
           label={t.photos.homeHero}
-          src={greenhouse}
+          src={packs}
           priority
-          sizes="(max-width: 639px) 450vw, 100vw"
-          className="h-[88svh] min-h-[600px] max-h-[800px] rounded-none [&_img]:object-[30%_50%] max-sm:[&_img]:origin-[30%_100%] max-sm:[&_img]:scale-150"
+          sizes="100vw"
+          className="h-[88svh] min-h-[600px] max-h-[800px] rounded-none [&_img]:object-[50%_40%]"
         />
         <div className="absolute inset-x-0 bottom-0">
           <div className="shell pb-6 sm:pb-12">

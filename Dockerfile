@@ -16,7 +16,7 @@ WORKDIR /app
 ENV NODE_ENV=production NEXT_TELEMETRY_DISABLED=1 PORT=3000 HOSTNAME=0.0.0.0
 COPY --from=build --chown=node:node /app/.next/standalone ./
 COPY --from=build --chown=node:node /app/.next/static ./.next/static
-# Fonts for the OG images, read at runtime from process.cwd()/assets
+# Fonts and photos for the link previews, read at runtime from process.cwd()/assets
 COPY --from=build --chown=node:node /app/assets ./assets
 USER node
 EXPOSE 3000

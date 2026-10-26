@@ -33,7 +33,7 @@ export async function submitOrder(_: OrderState, fd: FormData): Promise<OrderSta
   const days = storage ? storageDays(day, date) : 0;
   const q = quote({ priceGrid, stock }, lines, pct, day, days * season.storageFeePerDay);
   // The CRM sells colors; the varieties the client picked reach Tatiana as a wish
-  const wishes = sorts.length ? `Сорта: ${sorts.map((x) => `${x.name} — ${x.packs} пач.`).join(", ")}` : "";
+  const wishes = sorts.length ? `Сорта: ${sorts.map((x) => `${x.name} ${x.packs} пач.`).join(", ")}` : "";
   const comment = [wishes, text(fd.get("comment"), 1000)].filter(Boolean).join("\n");
   const slot = text(fd.get("slot"), 20);
   const method = fd.get("method") === "client_truck" ? "client_truck" : "self";
@@ -64,7 +64,7 @@ export async function submitOrder(_: OrderState, fd: FormData): Promise<OrderSta
     `Заявка с сайта${lang === "kz" ? " (KZ)" : ""}`,
     ...q.lines.map((l) => `${ru.product(l.color, l.type)}: ${l.packs} пач. × ${l.pricePerStem} ₸ = ${tenge(l.sum)}`),
     `Итого ${tenge(q.total)}, предоплата ${pct} % = ${tenge(q.prepayment)}, остаток ${tenge(q.remainder)}`,
-    `Вывоз ${date} ${slot}, ${method === "self" ? "самовывоз" : "машина клиента"}${storage ? `, холодильник ${days} сут. — ${tenge(q.fee)}` : ""}`,
+    `Вывоз ${date} ${slot}, ${method === "self" ? "самовывоз" : "машина клиента"}${storage ? `, холодильник ${days} сут., ${tenge(q.fee)}` : ""}`,
     [company, name, phone].filter(Boolean).join(", "),
     legal === "too" ? `ТОО «${org}», БИН ${bin}` : legal === "person" ? "Физлицо" : "ИП",
     comment,

@@ -100,7 +100,7 @@ async function TulpanBody() {
                     <tr>
                       <th scope="col" className="py-2 text-left font-normal">{t.tulpan.gridOrder}</th>
                       {PREPAYMENTS.map((p) => (
-                        <th key={p} scope="col" className="py-2 font-normal">{p}&nbsp;%</th>
+                        <th key={p} scope="col" className="py-2 pr-2 font-normal">{p}&nbsp;%</th>
                       ))}
                     </tr>
                   </thead>

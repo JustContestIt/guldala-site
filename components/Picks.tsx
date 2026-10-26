@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useSyncExternalStore } from "react";
+import { useEffect, useState, useSyncExternalStore } from "react";
 import type { Dict } from "@/content/dict/ru";
 import { VARIETIES } from "@/content/varieties";
 import { tenge } from "@/lib/format";
@@ -68,18 +68,27 @@ function bump(slug: string, delta: number, group: string[], max: number) {
   setPick(slug, (p[slug] ?? 0) + delta);
 }
 
+// A typed pack count, cut to what the color has left after its other varieties (and to what read() keeps)
+function setPacks(slug: string, packs: number, group: string[], max: number) {
+  const p = read();
+  const others = group.reduce((a, s) => a + (s === slug ? 0 : (p[s] ?? 0)), 0);
+  setPick(slug, Math.min(packs, max - others, 999));
+}
+
 // On the order page right after sending: the basket is now an order
 export function ClearPicks() {
   useEffect(() => save({}), []);
   return null;
 }
 
-type StepperT = Pick<Dict["calc"], "add" | "less" | "more" | "packs" | "max">;
+type StepperT = Pick<Dict["calc"], "add" | "less" | "more" | "unit" | "count" | "max">;
 
-// "В заказ" until the first pack, then − N + ; varieties of one color share that color's stock
+// "В заказ" until the first pack, then − N + with N typeable (50 packs shouldn't take 50 taps); varieties of one color share that color's stock
 export function PickStepper({ slug, group, max, label, t }: { slug: string; group: string[]; max: number; label: string; t: StepperT }) {
   const picks = usePicks();
   const n = picks[slug] ?? 0;
+  // only an empty or zero field lives here while typing: a positive number goes straight to the order
+  const [draft, setDraft] = useState<string | null>(null);
   const full = group.reduce((a, s) => a + (picks[s] ?? 0), 0) >= max;
   if (!n)
     return (
@@ -95,13 +104,34 @@ export function PickStepper({ slug, group, max, label, t }: { slug: string; grou
   return (
     <div>
       <div className="flex items-center justify-between rounded-xl border border-accent">
-        <button type="button" onClick={() => bump(slug, -1, group, max)} aria-label={fmt(t.less, { label })} className="grid size-11 place-items-center text-lg">
+        <button type="button" onClick={() => bump(slug, -1, group, max)} aria-label={fmt(t.less, { label })} className="grid h-11 w-10 shrink-0 place-items-center text-lg">
           −
         </button>
-        <output aria-live="polite" className="text-sm font-semibold tabular-nums">
-          {fmt(t.packs, { n })}
-        </output>
-        <button type="button" onClick={() => bump(slug, 1, group, max)} disabled={full} aria-label={fmt(t.more, { label })} className="grid size-11 place-items-center text-lg disabled:opacity-30">
+        {/* 16px text: iOS zooms the page into smaller inputs */}
+        <label className="flex items-center gap-1 text-sm font-semibold">
+          <input
+            type="text"
+            inputMode="numeric"
+            pattern="[0-9]*"
+            enterKeyHint="done"
+            aria-label={fmt(t.count, { label })}
+            value={draft ?? String(n)}
+            onFocus={(e) => e.currentTarget.select()}
+            onChange={(e) => {
+              const v = e.target.value.replace(/\D/g, "").slice(0, 3);
+              if (Number(v) > 0) setPacks(slug, Number(v), group, max);
+              setDraft(Number(v) > 0 ? null : v);
+            }}
+            onBlur={() => {
+              if (draft === "0") setPick(slug, 0); // an empty field just goes back to the count
+              setDraft(null);
+            }}
+            onKeyDown={(e) => e.key === "Enter" && e.currentTarget.blur()}
+            className="h-9 w-11 rounded-lg bg-mint text-center text-base tabular-nums outline-accent focus:bg-white focus:outline-2"
+          />
+          {t.unit}
+        </label>
+        <button type="button" onClick={() => bump(slug, 1, group, max)} disabled={full} aria-label={fmt(t.more, { label })} className="grid h-11 w-10 shrink-0 place-items-center text-lg disabled:opacity-30">
           +
         </button>
       </div>

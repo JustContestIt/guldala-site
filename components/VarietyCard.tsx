@@ -85,7 +85,7 @@ export async function VarietyRow({ v, status, max }: Props) {
       <div className="flex w-full items-center justify-between gap-3 sm:w-auto">
         <StockBadge status={status} t={t.stock} />
         {status !== "none" && (
-          <div className="w-34">
+          <div className="w-40">
             <PickStepper slug={v.slug} group={groupOf(v)} max={max} label={v.name} t={t.calc} />
           </div>
         )}
