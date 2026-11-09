@@ -157,7 +157,8 @@ export function OrderBar({ data, href, token, t }: { data: Pick<SeasonCurrent, "
           <p className="font-semibold">{fmt(t.packs, { n: q.stems / PACK_SIZE, stems: q.stems })}</p>
           <p className={q.missingStems ? "text-warn" : "text-muted"}>{q.missingStems ? fmt(t.toMin, { n: q.missingStems }) : fmt(t.from, { sum: tenge(q.total) })}</p>
         </div>
-        <Link href={href} className="inline-flex min-h-11 shrink-0 items-center justify-center rounded-xl bg-accent px-5 text-sm font-semibold text-white hover:bg-accent-dark">
+        {/* at most ~half the bar: «Оформить бронь / заказ» is long, in Kazakh longer still, so it wraps instead of squeezing the count */}
+        <Link href={href} className="inline-flex min-h-11 max-w-[62%] items-center justify-center rounded-xl bg-accent px-4 py-1.5 text-center text-sm leading-tight font-semibold text-white hover:bg-accent-dark">
           {t.checkout}
         </Link>
       </div>

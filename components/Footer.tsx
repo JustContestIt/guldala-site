@@ -3,7 +3,6 @@ import { CONTACTS, instagramUrl, waLink } from "@/content/site";
 import { getDict } from "@/lib/dict";
 import { botanicaNav } from "./Header";
 import { Icon } from "./icons";
-import { Ph } from "./ui";
 
 export async function Footer({ botanica = false }: { botanica?: boolean }) {
   const { t, href } = await getDict();
@@ -46,7 +45,7 @@ export async function Footer({ botanica = false }: { botanica?: boolean }) {
       </div>
       <div className="border-t border-white/10">
         <p className="shell py-5 text-xs">
-          {t.tulpan.ip} <Ph>{t.ph.ip}</Ph> · {t.tulpan.bin} <Ph>{t.ph.bin}</Ph> · © 2026 Guldala
+          {t.requisites} · © 2026 Guldala
         </p>
       </div>
     </footer>

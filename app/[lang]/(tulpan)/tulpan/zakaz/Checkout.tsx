@@ -12,7 +12,7 @@ import { waLink } from "@/content/site";
 import { groupOf, VARIETIES } from "@/content/varieties";
 import { tenge } from "@/lib/format";
 import { fmt, type Lang } from "@/lib/i18n";
-import { linesFromPicks, PACK_SIZE, quote, serializePicks, slotsFor, storageDays } from "@/lib/order";
+import { linesFromPicks, PACK_SIZE, quote, serializePicks, slotsFor } from "@/lib/order";
 import { almatyDay, PREPAYMENTS, pricePerStem } from "@/lib/pricing";
 import type { PrepaymentPct, SeasonCurrent } from "@/lib/season";
 import { submitOrder } from "./actions";
@@ -35,7 +35,6 @@ export function Checkout({ lang, data, t, labels, catalogHref, client, prefillTo
   const [date, setDate] = useState("");
   const [slot, setSlot] = useState("");
   const [legal, setLegal] = useState<"ip" | "too" | "person">("ip");
-  const [storage, setStorage] = useState(false);
   const [state, action, pending] = useActionState(submitOrder, null);
   const [checked, setChecked] = useState(false);
   // Submit by hand: <form action> would reset every field even when the server only returns validation errors.
@@ -57,10 +56,7 @@ export function Checkout({ lang, data, t, labels, catalogHref, client, prefillTo
   const day = almatyDay(new Date(data.asOf));
   const lineOf = (v: (typeof VARIETIES)[number]) => data.stock.find((s) => s.color === v.color && s.type === v.type);
   const chosen = VARIETIES.filter((v) => picks[v.slug] && lineOf(v));
-  // the fridge: every day from today to pickup, at the season's rate (the CRM counts the same on save)
-  const perDay = data.season.storageFeePerDay;
-  const days = storage ? storageDays(day, date) : 0;
-  const q = quote(data, linesFromPicks(picks, chosen, data.stock).lines, pct, day, days * perDay);
+  const q = quote(data, linesFromPicks(picks, chosen, data.stock).lines, pct, day);
   const slots = slotsFor(data.season, date, day);
   const price = (type: "classic" | "double") => pricePerStem(data.priceGrid, type, pct, day);
   const blocked = pending || !q.lines.length || q.missingStems > 0 || q.closed || q.overStock.length > 0;
@@ -161,17 +157,6 @@ export function Checkout({ lang, data, t, labels, catalogHref, client, prefillTo
               </label>
             ))}
           </fieldset>
-          <div className="sm:col-span-2">
-            <label className="flex min-h-11 items-center gap-3 text-sm">
-              <input type="checkbox" name="storage" checked={storage} onChange={(e) => setStorage(e.target.checked)} className="size-5 accent-accent" />
-              {fmt(t.storage, { fee: tenge(perDay) })}
-            </label>
-            {storage && (
-              <p className="mt-1 pl-8 text-xs text-muted" aria-live="polite">
-                {date ? fmt(t.storageLine, { days, fee: tenge(perDay) }) + ` = ${tenge(q.fee)}` : t.storageDate}
-              </p>
-            )}
-          </div>
         </fieldset>
 
         <fieldset className="grid gap-4 rounded-2xl border border-line p-5 sm:grid-cols-2">
@@ -223,14 +208,8 @@ export function Checkout({ lang, data, t, labels, catalogHref, client, prefillTo
           </div>
           <div className="flex items-baseline justify-between gap-3 border-t border-line pt-3">
             <dt className="text-sm">{fmt(t.flowers, { n: q.stems })}</dt>
-            <dd className="font-semibold tabular-nums">{tenge(q.total - q.fee)}</dd>
+            <dd className="font-semibold tabular-nums">{tenge(q.total)}</dd>
           </div>
-          {q.fee > 0 && (
-            <div className="flex items-baseline justify-between gap-3 border-t border-line pt-3">
-              <dt className="text-sm">{fmt(t.storageLine, { days, fee: tenge(perDay) })}</dt>
-              <dd className="font-semibold tabular-nums">{tenge(q.fee)}</dd>
-            </div>
-          )}
           <div className="flex items-baseline justify-between gap-3 border-t border-line pt-3">
             <dt className="text-sm">{fmt(t.prepay, { pct })}</dt>
             <dd className="font-semibold tabular-nums">{tenge(q.prepayment)}</dd>

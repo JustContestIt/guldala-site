@@ -13,7 +13,7 @@ const STOCK: Record<StockStatus, string> = {
 
 export function StockBadge({ status, t }: { status: StockStatus; t: Dict["stock"] }) {
   return (
-    <span className={`inline-flex rounded-full px-2.5 py-1 text-xs font-medium ${STOCK[status]}`}>
+    <span className={`inline-flex rounded-full px-3 py-1 text-sm font-medium ${STOCK[status]}`}>
       {t.label}: {t[status]}
     </span>
   );

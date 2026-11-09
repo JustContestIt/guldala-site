@@ -8,7 +8,7 @@ export const alt = "Guldala";
 export const size = ogSize;
 export const contentType = ogType;
 
-// A variety: its own close-up; without photos (Cheers) our packs
+// A variety: its own close-up; without photos, our packs
 export default async function Image({ params }: { params: Promise<{ lang: string; slug: string }> }) {
   const { lang, slug } = await params;
   const t = lang === "kz" ? kz : ru;

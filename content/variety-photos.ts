@@ -16,6 +16,7 @@ import bullit1 from "@/assets/varieties/bullit_1.jpg";
 import bullit2 from "@/assets/varieties/bullit_2.jpg";
 import bullit3 from "@/assets/varieties/bullit_3.jpg";
 import cadenza1 from "@/assets/varieties/cadenza_1.jpg";
+import cheers1 from "@/assets/varieties/cheers_1.jpg";
 import cadenza2 from "@/assets/varieties/cadenza_2.jpg";
 import columbus1 from "@/assets/varieties/columbus_1.jpg";
 import columbus2 from "@/assets/varieties/columbus_2.jpg";
@@ -93,6 +94,7 @@ export const VARIETY_PHOTOS: Record<string, StaticImageData[]> = {
   "body-builder": [bodyBuilder1],
   "bullit": [bullit1, bullit2, bullit3],
   "cadenza": [cadenza1, cadenza2],
+  "cheers": [cheers1], // sent by the client (photos/cheers_1.jpg, 10.11.2026), not Haakman's: no credit under it (VarietyInfo)
   "columbus": [columbus1, columbus2, columbus3],
   "creme-fraiche": [cremeFraiche1],
   "delta-storm": [deltaStorm1, deltaStorm2, deltaStorm3],

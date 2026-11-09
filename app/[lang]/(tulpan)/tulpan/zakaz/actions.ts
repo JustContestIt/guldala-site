@@ -8,7 +8,7 @@ import { VARIETIES } from "@/content/varieties";
 import { crmPost } from "@/lib/crm";
 import { tenge } from "@/lib/format";
 import { isLang, localHref } from "@/lib/i18n";
-import { linesFromPicks, parsePicks, quote, slotsFor, storageDays } from "@/lib/order";
+import { linesFromPicks, parsePicks, quote, slotsFor } from "@/lib/order";
 import { almatyDay, PREPAYMENTS } from "@/lib/pricing";
 import { cachedSeason, type PrepaymentPct } from "@/lib/season";
 import { isBin, normalizePhone, text } from "@/lib/validate";
@@ -29,9 +29,7 @@ export async function submitOrder(_: OrderState, fd: FormData): Promise<OrderSta
   const { lines, sorts } = linesFromPicks(picks, VARIETIES, stock);
   const date = text(fd.get("date"), 10);
   const day = almatyDay(new Date(asOf));
-  const storage = !!fd.get("storage");
-  const days = storage ? storageDays(day, date) : 0;
-  const q = quote({ priceGrid, stock }, lines, pct, day, days * season.storageFeePerDay);
+  const q = quote({ priceGrid, stock }, lines, pct, day);
   // The CRM sells colors; the varieties the client picked reach Tatiana as a wish
   const wishes = sorts.length ? `Сорта: ${sorts.map((x) => `${x.name} ${x.packs} пач.`).join(", ")}` : "";
   const comment = [wishes, text(fd.get("comment"), 1000)].filter(Boolean).join("\n");
@@ -64,7 +62,7 @@ export async function submitOrder(_: OrderState, fd: FormData): Promise<OrderSta
     `Заявка с сайта${lang === "kz" ? " (KZ)" : ""}`,
     ...q.lines.map((l) => `${ru.product(l.color, l.type)}: ${l.packs} пач. × ${l.pricePerStem} ₸ = ${tenge(l.sum)}`),
     `Итого ${tenge(q.total)}, предоплата ${pct} % = ${tenge(q.prepayment)}, остаток ${tenge(q.remainder)}`,
-    `Вывоз ${date} ${slot}, ${method === "self" ? "самовывоз" : "машина клиента"}${storage ? `, холодильник ${days} сут., ${tenge(q.fee)}` : ""}`,
+    `Вывоз ${date} ${slot}, ${method === "self" ? "самовывоз" : "машина клиента"}`,
     [company, name, phone].filter(Boolean).join(", "),
     legal === "too" ? `ТОО «${org}», БИН ${bin}` : legal === "person" ? "Физлицо" : "ИП",
     comment,
@@ -82,7 +80,6 @@ export async function submitOrder(_: OrderState, fd: FormData): Promise<OrderSta
         pickupDate: date,
         pickupSlot: slot,
         pickupMethod: method,
-        storage,
         client: { company, name, phone, legalType: legal, bin, orgName: org },
         comment,
         source: "site",

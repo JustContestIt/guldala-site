@@ -8,7 +8,7 @@ import { GreenhouseMap } from "@/components/GreenhouseMap";
 import { Icon, type IconName } from "@/components/icons";
 import { OrderSteps } from "@/components/OrderSteps";
 import { Photo } from "@/components/Photo";
-import { ButtonLink, Ph, SectionTitle } from "@/components/ui";
+import { ButtonLink, SectionTitle } from "@/components/ui";
 import { SHADE_HEX, SHADES, TULIP_TYPES } from "@/content/colors";
 import { CONTACTS, instagramUrl, waLink } from "@/content/site";
 import { groupPhoto } from "@/content/variety-photos";
@@ -27,11 +27,14 @@ export async function generateMetadata() {
   return pageMeta("/", t.meta.site, t.meta.siteDesc);
 }
 
+// data-home: the layout's «← На главную» hides itself on this page
 export default function Home() {
   return (
-    <Suspense fallback={null}>
-      <HomeBody />
-    </Suspense>
+    <div data-home>
+      <Suspense fallback={null}>
+        <HomeBody />
+      </Suspense>
+    </div>
   );
 }
 
@@ -150,9 +153,6 @@ async function HomeBody() {
               {c}
             </li>
           ))}
-          <Suspense fallback={<li className={chip}>{t.storageChip(null)}</li>}>
-            <StorageChip />
-          </Suspense>
         </ul>
       </section>
 
@@ -182,7 +182,7 @@ async function HomeBody() {
               <h3 className="text-lg">{t.home.payTitle}</h3>
               <p className="mt-3 text-sm text-muted">{t.home.payText}</p>
               <p className="mt-3 text-sm">
-                {t.tulpan.ip} <Ph>{t.ph.ip}</Ph> · {t.tulpan.bin} <Ph>{t.ph.bin}</Ph>
+                {t.requisites}
               </p>
               <p className="mt-1 text-sm">{t.contacts.address}</p>
             </div>
@@ -231,10 +231,4 @@ async function TodayPrice() {
       <b className="font-display text-lg text-accent-dark">{t.home.priceToday(tenge(Math.min(...prices)))}</b> {t.home.priceHint}
     </p>
   );
-}
-
-async function StorageChip() {
-  const { t } = await getDict();
-  const s = await seasonOrNull();
-  return <li className={chip}>{t.storageChip(s ? tenge(s.season.storageFeePerDay) : null)}</li>;
 }

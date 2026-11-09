@@ -2,7 +2,7 @@ import rows from "@/assets/greenhouse-rows.jpg";
 import packs from "@/assets/packs.jpg";
 import planting from "@/assets/planting.jpg";
 import { Photo } from "@/components/Photo";
-import { ButtonLink, Ph, SectionTitle } from "@/components/ui";
+import { ButtonLink, SectionTitle } from "@/components/ui";
 import { getDict, pageMeta } from "@/lib/dict";
 
 // Photos in the order of t.photos.gallery; the rest are still placeholders
@@ -44,7 +44,7 @@ export default async function AboutPage() {
 
       <section className="mt-16 rounded-2xl border border-line p-6">
         <h2 className="text-xl">{t.about.reqTitle}</h2>
-        <p className="mt-3 text-sm">{t.tulpan.ip} <Ph>{t.ph.ip}</Ph> · {t.tulpan.bin} <Ph>{t.ph.bin}</Ph></p>
+        <p className="mt-3 text-sm">{t.requisites}</p>
         <p className="mt-1 text-sm">{t.contacts.address}</p>
         <ButtonLink href={href("/kontakty")} variant="secondary" className="mt-5">{t.nav.contacts}</ButtonLink>
       </section>

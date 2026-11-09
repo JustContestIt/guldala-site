@@ -24,7 +24,7 @@ export async function VarietyPhotos({ v, ratio, sizes, priority, className }: { 
   return (
     <>
       <Gallery slides={slides} thumbs={photos} label={v.name} t={{ prev: t.variety.prevPhoto, next: t.variety.nextPhoto }} />
-      {photos.length > 0 && <p className="mt-2 text-xs text-muted">{t.variety.photoCredit}</p>}
+      {photos.length > 0 && v.slug !== "cheers" && <p className="mt-2 text-xs text-muted">{t.variety.photoCredit}</p>}
     </>
   );
 }
