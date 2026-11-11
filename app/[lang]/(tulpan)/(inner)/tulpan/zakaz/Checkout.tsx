@@ -31,7 +31,7 @@ type Props = {
 // The order comes from the catalog (variety picks); here it is checked, priced and sent
 export function Checkout({ lang, data, t, labels, catalogHref, client, prefillToken }: Props) {
   const picks = usePicks();
-  const [pct, setPct] = useState<PrepaymentPct>(100);
+  const [pickedPct, setPct] = useState<PrepaymentPct>(100);
   const [payNow, setPayNow] = useState(true); // С9: prepayment now (Kaspi invoice) or a booking without it
   const [date, setDate] = useState("");
   const [slot, setSlot] = useState("");
@@ -54,6 +54,8 @@ export function Checkout({ lang, data, t, labels, catalogHref, client, prefillTo
     startTransition(() => action(fd));
   };
 
+  // a booking has no % to pick (the client picks it after the confirmation): it is priced at the smallest prepayment
+  const pct = payNow ? pickedPct : PREPAYMENTS[0];
   const day = almatyDay(new Date(data.asOf));
   const lineOf = (v: (typeof VARIETIES)[number]) => data.stock.find((s) => s.color === v.color && s.type === v.type);
   const chosen = VARIETIES.filter((v) => picks[v.slug] && lineOf(v));
@@ -135,22 +137,26 @@ export function Checkout({ lang, data, t, labels, catalogHref, client, prefillTo
               </label>
             ))}
           </div>
-          <p className="mt-4 text-sm font-medium">{payNow ? t.pctNow : t.pctLater}</p>
-          <div className="mt-2 grid grid-cols-4 gap-2">
-            {PREPAYMENTS.map((p) => (
-              <label
-                key={p}
-                className={`flex min-h-11 cursor-pointer items-center justify-center rounded-xl border text-sm font-semibold has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-accent/40 ${
-                  p === pct ? "border-accent bg-accent text-white" : "border-line hover:bg-mint"
-                }`}
-              >
-                <input type="radio" name="pctChoice" value={p} checked={p === pct} onChange={() => setPct(p)} className="sr-only" />
-                {p}&nbsp;%
-              </label>
-            ))}
-          </div>
-          {classic !== null && double !== null && (
-            <p className="mt-3 text-sm text-muted">{fmt(t.prepayHint, { pct, classic: tenge(classic), double: tenge(double) })}</p>
+          {payNow && (
+            <>
+              <p className="mt-4 text-sm font-medium">{t.pctNow}</p>
+              <div className="mt-2 grid grid-cols-4 gap-2">
+                {PREPAYMENTS.map((p) => (
+                  <label
+                    key={p}
+                    className={`flex min-h-11 cursor-pointer items-center justify-center rounded-xl border text-sm font-semibold has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-accent/40 ${
+                      p === pct ? "border-accent bg-accent text-white" : "border-line hover:bg-mint"
+                    }`}
+                  >
+                    <input type="radio" name="pctChoice" value={p} checked={p === pct} onChange={() => setPct(p)} className="sr-only" />
+                    {p}&nbsp;%
+                  </label>
+                ))}
+              </div>
+              {classic !== null && double !== null && (
+                <p className="mt-3 text-sm text-muted">{fmt(t.prepayHint, { pct, classic: tenge(classic), double: tenge(double) })}</p>
+              )}
+            </>
           )}
         </fieldset>
 
@@ -232,14 +238,18 @@ export function Checkout({ lang, data, t, labels, catalogHref, client, prefillTo
             <dt className="text-sm">{fmt(t.flowers, { n: q.stems })}</dt>
             <dd className="font-semibold tabular-nums">{tenge(q.total)}</dd>
           </div>
-          <div className="flex items-baseline justify-between gap-3 border-t border-line pt-3">
-            <dt className="text-sm">{fmt(payNow ? t.prepayNow : t.prepay, { pct })}</dt>
-            <dd className="font-semibold tabular-nums">{tenge(q.prepayment)}</dd>
-          </div>
-          <div className="flex items-baseline justify-between gap-3 border-t border-line pt-3">
-            <dt className="text-sm">{t.rest}</dt>
-            <dd className="font-semibold tabular-nums">{tenge(q.remainder)}</dd>
-          </div>
+          {payNow && (
+            <>
+              <div className="flex items-baseline justify-between gap-3 border-t border-line pt-3">
+                <dt className="text-sm">{fmt(t.prepayNow, { pct })}</dt>
+                <dd className="font-semibold tabular-nums">{tenge(q.prepayment)}</dd>
+              </div>
+              <div className="flex items-baseline justify-between gap-3 border-t border-line pt-3">
+                <dt className="text-sm">{t.rest}</dt>
+                <dd className="font-semibold tabular-nums">{tenge(q.remainder)}</dd>
+              </div>
+            </>
+          )}
         </dl>
 
         <p className="mt-4 text-sm" aria-live="polite">

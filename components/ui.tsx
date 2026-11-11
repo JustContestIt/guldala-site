@@ -78,7 +78,8 @@ export function SectionTitle({ title, lead, dark }: { title: string; lead?: Reac
 // `error` marks the field required (*) unless it is `optional`: then it only explains a wrong value
 export function Field({ label, children, hint, error, optional }: { label: string; children: ReactNode; hint?: string; error?: string; optional?: boolean }) {
   return (
-    <label className="group/field grid gap-1.5 text-sm">
+    // content-start: in a two-column row the field without a hint must not stretch its label and input to the neighbour's height
+    <label className="group/field grid content-start gap-1.5 text-sm">
       <span className="font-medium">
         {label}
         {error && !optional && <span aria-hidden="true" className="text-up"> *</span>}
