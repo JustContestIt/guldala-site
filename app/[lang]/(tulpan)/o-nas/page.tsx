@@ -2,6 +2,7 @@ import rows from "@/assets/greenhouse-rows.jpg";
 import packs from "@/assets/packs.jpg";
 import planting from "@/assets/planting.jpg";
 import { Photo } from "@/components/Photo";
+import { WithTerms } from "@/components/Terms";
 import { ButtonLink, SectionTitle } from "@/components/ui";
 import { getDict, pageMeta } from "@/lib/dict";
 
@@ -21,11 +22,15 @@ export default async function AboutPage() {
         <div>
           <h1 className="text-3xl sm:text-5xl">{t.about.h1}</h1>
           <p className="mt-3 text-lg text-muted">{t.about.lead}</p>
-          {t.about.text.map((p) => (
-            <p key={p} className="mt-4">
-              {p}
-            </p>
-          ))}
+          <WithTerms>
+            {(x) =>
+              t.about.text(x).map((p) => (
+                <p key={p} className="mt-4">
+                  {p}
+                </p>
+              ))
+            }
+          </WithTerms>
           <ButtonLink href={href("/tulpan/sorta")} className="mt-6">
             {t.home.ctaSorts}
           </ButtonLink>

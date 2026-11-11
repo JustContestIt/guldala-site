@@ -29,7 +29,7 @@ export async function submitOrder(_: OrderState, fd: FormData): Promise<OrderSta
   const { lines, sorts } = linesFromPicks(picks, VARIETIES, stock);
   const date = text(fd.get("date"), 10);
   const day = almatyDay(new Date(asOf));
-  const q = quote({ priceGrid, stock }, lines, pct, day);
+  const q = quote({ season, priceGrid, stock }, lines, pct, day);
   // The CRM sells colors; the varieties the client picked reach Tatiana as a wish
   const wishes = sorts.length ? `Сорта: ${sorts.map((x) => `${x.name} ${x.packs} пач.`).join(", ")}` : "";
   const comment = [wishes, text(fd.get("comment"), 1000)].filter(Boolean).join("\n");

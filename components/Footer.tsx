@@ -3,6 +3,7 @@ import { CONTACTS, instagramUrl, waLink } from "@/content/site";
 import { getDict } from "@/lib/dict";
 import { botanicaNav } from "./Header";
 import { Icon } from "./icons";
+import { WithTerms } from "./Terms";
 
 export async function Footer({ botanica = false }: { botanica?: boolean }) {
   const { t, href } = await getDict();
@@ -21,7 +22,7 @@ export async function Footer({ botanica = false }: { botanica?: boolean }) {
       <div className="shell grid gap-10 py-12 md:grid-cols-3">
         <div>
           <p className="font-display text-xl font-extrabold text-white">{botanica ? "Guldala Botanica" : "Guldala"}</p>
-          <p className="mt-3 text-sm">{botanica ? t.botanica.lead : t.footer.about}</p>
+          <p className="mt-3 text-sm">{botanica ? t.botanica.lead : <WithTerms>{(x) => t.footer.about(x)}</WithTerms>}</p>
         </div>
         <nav aria-label={t.nav.sections}>
           <ul className="grid gap-2 text-sm">

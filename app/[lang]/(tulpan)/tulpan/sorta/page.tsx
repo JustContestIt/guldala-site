@@ -8,6 +8,7 @@ import { VarietyInfo, VarietyPhotos } from "@/components/VarietyInfo";
 import { isTall, VARIETIES } from "@/content/varieties";
 import { getDict, pageMeta } from "@/lib/dict";
 import { isToken } from "@/lib/orders";
+import { WithTerms } from "@/components/Terms";
 import { getSeason } from "@/lib/season";
 
 export async function generateMetadata() {
@@ -21,7 +22,9 @@ export default async function SortaPage({ searchParams }: PageProps<"/[lang]/tul
     <div className="bg-surface pb-28">
       <div className="shell pt-10 pb-2 md:pt-14">
         <h1 className="text-3xl sm:text-4xl">{t.sorta.h1}</h1>
-        <p className="mt-2 max-w-2xl text-muted">{t.sorta.lead(VARIETIES.length)}</p>
+        <p className="mt-2 max-w-2xl text-muted">
+          <WithTerms>{(x) => t.sorta.lead(VARIETIES.length, x)}</WithTerms>
+        </p>
       </div>
       {/* the filter bar sticks only while the varieties are on screen, not over the questions under them */}
       <div>
@@ -42,7 +45,7 @@ async function Varieties({ searchParams }: { searchParams: PageProps<"/[lang]/tu
   const { t, href } = await getDict();
   const sp = await searchParams;
   const token = typeof sp.c === "string" && isToken(sp.c) ? sp.c : undefined;
-  const { asOf, priceGrid, stock, prices } = await getSeason();
+  const { season, asOf, priceGrid, stock, prices } = await getSeason();
   const items: CatalogItem[] = VARIETIES.map((v) => {
     const line = stock.find((s) => s.color === v.color && s.type === v.type);
     const p = { v, status: line?.status ?? "none", max: line?.maxPacks ?? 0 };
@@ -79,7 +82,7 @@ async function Varieties({ searchParams }: { searchParams: PageProps<"/[lang]/tu
         colors={t.colors}
         types={t.types}
       />
-      <OrderBar data={{ asOf, priceGrid, stock }} href={href("/tulpan/zakaz")} token={token} t={t.calc.bar} />
+      <OrderBar data={{ season, asOf, priceGrid, stock }} href={href("/tulpan/zakaz")} token={token} t={t.calc.bar} />
     </>
   );
 }

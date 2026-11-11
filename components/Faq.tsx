@@ -1,4 +1,5 @@
 import { getDict } from "@/lib/dict";
+import { WithTerms } from "./Terms";
 import { Icon } from "./icons";
 
 // The questions and answers: on the home page, under prices and the catalog, and as the menu's own page
@@ -6,7 +7,9 @@ export async function Faq({ className = "" }: { className?: string }) {
   const { t } = await getDict();
   return (
     <div className={`max-w-3xl divide-y divide-line border-y border-line ${className}`}>
-      {t.faq.map((f) => (
+      <WithTerms>
+        {(x) =>
+          t.faq(x).map((f) => (
         <details key={f.q} className="group">
           <summary className="flex min-h-14 list-none items-center justify-between gap-4 py-3 font-semibold [&::-webkit-details-marker]:hidden">
             {f.q}
@@ -14,7 +17,9 @@ export async function Faq({ className = "" }: { className?: string }) {
           </summary>
           <p className="pb-4 text-muted">{f.a}</p>
         </details>
-      ))}
+          ))
+        }
+      </WithTerms>
     </div>
   );
 }

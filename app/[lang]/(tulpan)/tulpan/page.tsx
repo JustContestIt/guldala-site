@@ -54,7 +54,7 @@ async function TulpanBody() {
                 {t.tulpan.season(season.peakDate.slice(0, 4))} · {season.saleOpen ? t.tulpan.open : t.tulpan.closed}
               </p>
               <h1 className="mt-2 text-3xl leading-tight sm:text-5xl">{t.tulpan.h1}</h1>
-              <p className="mt-3 text-muted">{t.tulpan.lead}</p>
+              <p className="mt-3 text-muted">{t.tulpan.lead({ pack: season.packSize, min: season.minStems })}</p>
               <div className="mt-5 flex flex-wrap gap-3">
                 <ButtonLink href={href("/tulpan/sorta")}>{t.tulpan.calcCta}</ButtonLink>
               </div>

@@ -24,6 +24,12 @@ describe("order quote", () => {
     expect(quote(season, [{ productId: ID.pink, packs: 8 }], 100, DAY).overStock).toEqual([]);
   });
 
+  it("counts packs and the minimum by the CRM's pack size", () => {
+    const small = { ...season, season: { ...season.season, packSize: 25 } };
+    expect(quote(small, [{ productId: ID.red, packs: 4 }], 100, DAY)).toMatchObject({ stems: 100, missingStems: 20 });
+    expect(quote(small, [{ productId: ID.red, packs: 5 }], 100, DAY)).toMatchObject({ stems: 125, missingStems: 0 });
+  });
+
   it("rounds prepayment up to a whole tenge", () => {
     expect(prepaymentAmount(1001, 40)).toBe(401);
   });

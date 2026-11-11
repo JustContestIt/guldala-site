@@ -12,7 +12,7 @@ import { waLink } from "@/content/site";
 import { groupOf, VARIETIES } from "@/content/varieties";
 import { tenge } from "@/lib/format";
 import { fmt, type Lang } from "@/lib/i18n";
-import { linesFromPicks, PACK_SIZE, quote, serializePicks, slotsFor } from "@/lib/order";
+import { linesFromPicks, quote, serializePicks, slotsFor } from "@/lib/order";
 import { almatyDay, PREPAYMENTS, pricePerStem } from "@/lib/pricing";
 import type { PrepaymentPct, SeasonCurrent } from "@/lib/season";
 import { submitOrder } from "./actions";
@@ -80,7 +80,7 @@ export function Checkout({ lang, data, t, labels, catalogHref, client, prefillTo
               <ul className="mt-2 divide-y divide-line">
                 {chosen.map((v) => {
                   const s = lineOf(v)!;
-                  const stems = picks[v.slug] * PACK_SIZE;
+                  const stems = picks[v.slug] * data.season.packSize;
                   const p = price(v.type);
                   return (
                     <li key={v.slug} className="grid grid-cols-[1fr_10rem] items-center gap-3 py-3">
@@ -100,7 +100,7 @@ export function Checkout({ lang, data, t, labels, catalogHref, client, prefillTo
                   );
                 })}
               </ul>
-              <p className="mt-2 text-xs text-muted">{t.packHint}</p>
+              <p className="mt-2 text-xs text-muted">{fmt(t.packHint, { pack: data.season.packSize })}</p>
               <Link href={catalogHref} className="mt-3 inline-flex min-h-11 items-center text-sm font-semibold text-accent">
                 + {t.addMore}
               </Link>
@@ -224,7 +224,7 @@ export function Checkout({ lang, data, t, labels, catalogHref, client, prefillTo
           {!q.lines.length ? (
             <span className="text-muted">{t.empty}</span>
           ) : q.missingStems > 0 ? (
-            <span className="text-warn">{fmt(t.toMin, { n: q.missingStems })}</span>
+            <span className="text-warn">{fmt(t.toMin, { n: q.missingStems, min: data.season.minStems })}</span>
           ) : null}
         </p>
 
@@ -236,7 +236,7 @@ export function Checkout({ lang, data, t, labels, catalogHref, client, prefillTo
                 <li key={e}>
                   {e === "stock"
                     ? fmt(t.errors.stock, { labels: (state.overStock ?? []).map((id) => labels[id]).join(", ") })
-                    : t.errors[e]}
+                    : fmt(t.errors[e], { min: data.season.minStems })}
                 </li>
               ))}
             </ul>

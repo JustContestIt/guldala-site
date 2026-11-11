@@ -36,7 +36,8 @@
     pickupFrom: string;      // окно выдачи, seasons.pickup_from
     pickupTo: string;        // seasons.pickup_to
     peakHoursFrom: string;   // с этой даты выдача до 23:00, settings.peak_hours_from; "" = нет
-    storageFeePerDay: number; // холодильник, ₸ в сутки за заказ (settings.storage_fee_per_day)
+    packSize: number;        // цветков в пачке, settings.pack_size (Склад, ревизия 09.11.2026): сайт считает и пишет пачку по нему
+    minStems: number;        // минимальный заказ в штуках, settings.min_order_stems (в сумме по цветам)
   };
   asOf: string;              // ISO, момент расчёта «сегодня»
   prices: {

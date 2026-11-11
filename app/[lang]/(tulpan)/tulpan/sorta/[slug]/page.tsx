@@ -34,7 +34,7 @@ export default async function VarietyPage({ params }: PageProps<"/[lang]/tulpan/
 
 async function VarietyBody({ v }: { v: Variety }) {
   const { t, href } = await getDict();
-  const { asOf, priceGrid, stock, prices } = await getSeason();
+  const { season, asOf, priceGrid, stock, prices } = await getSeason();
   const line = (x: Variety) => stock.find((s) => s.color === x.color && s.type === x.type);
   const statusOf = (x: Variety) => line(x)?.status ?? "none";
   const similar = VARIETIES.filter((x) => x.slug !== v.slug && x.color === v.color)
@@ -72,7 +72,7 @@ async function VarietyBody({ v }: { v: Variety }) {
           </ul>
         </section>
       )}
-      <OrderBar data={{ asOf, priceGrid, stock }} href={href("/tulpan/zakaz")} t={t.calc.bar} />
+      <OrderBar data={{ season, asOf, priceGrid, stock }} href={href("/tulpan/zakaz")} t={t.calc.bar} />
     </div>
   );
 }

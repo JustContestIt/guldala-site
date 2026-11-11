@@ -2,9 +2,6 @@ import type { ColorId, TulipType } from "../content/colors";
 import { pricePerStem } from "./pricing";
 import type { PrepaymentPct, SeasonCurrent, StockItem } from "./season";
 
-export const PACK_SIZE = 30;
-export const MIN_STEMS = 120; // in total across colors (CRM assumption min_order_scope = total)
-
 export type OrderLine = { productId: string; packs: number };
 export type QuoteLine = OrderLine & { color: ColorId; type: TulipType; stems: number; pricePerStem: number; sum: number };
 
@@ -23,7 +20,7 @@ export type Quote = {
 export const prepaymentAmount = (total: number, pct: number) => Math.ceil((total * pct) / 100);
 
 export function quote(
-  season: Pick<SeasonCurrent, "priceGrid" | "stock">,
+  season: Pick<SeasonCurrent, "season" | "priceGrid" | "stock">, // the pack and the minimum are the CRM's (min_order_scope = total)
   order: OrderLine[],
   pct: PrepaymentPct,
   day: string,
@@ -46,7 +43,7 @@ export function quote(
       closed = true;
       continue;
     }
-    const stems = packs * PACK_SIZE;
+    const stems = packs * season.season.packSize;
     lines.push({ productId, packs, color: s.color, type: s.type, stems, pricePerStem: price, sum: stems * price });
   }
 
@@ -59,7 +56,7 @@ export function quote(
     total,
     prepayment,
     remainder: total - prepayment,
-    missingStems: Math.max(0, MIN_STEMS - stems),
+    missingStems: Math.max(0, season.season.minStems - stems),
     overStock,
     unknown,
     closed,

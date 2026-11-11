@@ -8,6 +8,7 @@ import { GreenhouseMap } from "@/components/GreenhouseMap";
 import { Icon, type IconName } from "@/components/icons";
 import { OrderSteps } from "@/components/OrderSteps";
 import { Photo } from "@/components/Photo";
+import { WithTerms } from "@/components/Terms";
 import { ButtonLink, SectionTitle } from "@/components/ui";
 import { SHADE_HEX, SHADES, TULIP_TYPES } from "@/content/colors";
 import { CONTACTS, instagramUrl, waLink } from "@/content/site";
@@ -68,7 +69,9 @@ async function HomeBody() {
             <div className="max-w-xl rounded-3xl bg-white p-6 shadow-sm sm:p-8">
               <p className="text-sm font-semibold text-accent">{t.home.eyebrow}</p>
               <h1 className="mt-2 text-4xl leading-tight sm:text-5xl">{t.home.h1}</h1>
-              <p className="mt-3 text-muted">{t.home.lead(VARIETIES.length)}</p>
+              <p className="mt-3 text-muted">
+                <WithTerms>{(x) => t.home.lead(VARIETIES.length, x)}</WithTerms>
+              </p>
               <Suspense fallback={null}>
                 <TodayPrice />
               </Suspense>
@@ -89,7 +92,9 @@ async function HomeBody() {
       <section className="shell py-12 md:py-16">
         <SectionTitle title={t.home.whyTitle} />
         <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {t.home.why.map((w, i) => (
+          <WithTerms>
+            {(x) =>
+              t.home.why(x).map((w, i) => (
             <li key={w.title} className="flex gap-4 rounded-2xl border border-line p-5 sm:block">
               <Icon name={WHY_ICONS[i]} className="size-7 text-accent" />
               <div>
@@ -97,7 +102,9 @@ async function HomeBody() {
                 <p className="mt-1 text-sm text-muted">{w.text}</p>
               </div>
             </li>
-          ))}
+              ))
+            }
+          </WithTerms>
         </ul>
       </section>
 
@@ -148,11 +155,15 @@ async function HomeBody() {
       <section className="shell pb-12 md:pb-16">
         <SectionTitle title={t.home.conditionsTitle} />
         <ul className="flex flex-wrap gap-2">
-          {t.conditions.map((c) => (
-            <li key={c} className={chip}>
-              {c}
-            </li>
-          ))}
+          <WithTerms>
+            {(x) =>
+              t.conditions(x).map((c) => (
+                <li key={c} className={chip}>
+                  {c}
+                </li>
+              ))
+            }
+          </WithTerms>
         </ul>
       </section>
 

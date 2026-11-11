@@ -6,7 +6,7 @@ import type { Dict } from "@/content/dict/ru";
 import { VARIETIES } from "@/content/varieties";
 import { tenge } from "@/lib/format";
 import { fmt } from "@/lib/i18n";
-import { linesFromPicks, PACK_SIZE, quote, type Picks } from "@/lib/order";
+import { linesFromPicks, quote, type Picks } from "@/lib/order";
 import { almatyDay } from "@/lib/pricing";
 import type { SeasonCurrent } from "@/lib/season";
 
@@ -142,7 +142,7 @@ export function PickStepper({ slug, group, max, label, t }: { slug: string; grou
 
 // Fixed at the bottom while the order has something in it. `token` comes from a WhatsApp link (?c=): remembered
 // in a cookie so the checkout can fill the contacts in, whichever page the client opens it from
-export function OrderBar({ data, href, token, t }: { data: Pick<SeasonCurrent, "asOf" | "priceGrid" | "stock">; href: string; token?: string; t: Dict["calc"]["bar"] }) {
+export function OrderBar({ data, href, token, t }: { data: Pick<SeasonCurrent, "season" | "asOf" | "priceGrid" | "stock">; href: string; token?: string; t: Dict["calc"]["bar"] }) {
   const picks = usePicks();
   useEffect(() => {
     if (token) document.cookie = `guldala_c=${token}; path=/; max-age=2592000; samesite=lax`;
@@ -154,8 +154,8 @@ export function OrderBar({ data, href, token, t }: { data: Pick<SeasonCurrent, "
     <div data-order-bar className="fixed inset-x-0 bottom-0 z-20 border-t border-line bg-white/95 pb-[env(safe-area-inset-bottom)] backdrop-blur">
       <div className="shell flex items-center gap-3 py-3">
         <div className="min-w-0 flex-1 text-sm">
-          <p className="font-semibold">{fmt(t.packs, { n: q.stems / PACK_SIZE, stems: q.stems })}</p>
-          <p className={q.missingStems ? "text-warn" : "text-muted"}>{q.missingStems ? fmt(t.toMin, { n: q.missingStems }) : fmt(t.from, { sum: tenge(q.total) })}</p>
+          <p className="font-semibold">{fmt(t.packs, { n: q.stems / data.season.packSize, stems: q.stems })}</p>
+          <p className={q.missingStems ? "text-warn" : "text-muted"}>{q.missingStems ? fmt(t.toMin, { n: q.missingStems, min: data.season.minStems }) : fmt(t.from, { sum: tenge(q.total) })}</p>
         </div>
         {/* at most ~half the bar: «Оформить бронь / заказ» is long, in Kazakh longer still, so it wraps instead of squeezing the count */}
         <Link href={href} className="inline-flex min-h-11 max-w-[62%] items-center justify-center rounded-xl bg-accent px-4 py-1.5 text-center text-sm leading-tight font-semibold text-white hover:bg-accent-dark">

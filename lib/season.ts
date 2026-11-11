@@ -31,6 +31,8 @@ export type SeasonCurrent = {
     pickupFrom: string;
     pickupTo: string;
     peakHoursFrom: string; // "" = no evening hours in this season
+    packSize: number; // flowers in a pack: the CRM's Склад setting (review 09.11.2026, К9)
+    minStems: number; // the smallest order, in flowers, across colors
   };
   asOf: string;
   prices: Record<TulipType, { today: number; next: { from: string; price: number } | null }>;
@@ -46,6 +48,18 @@ export async function cachedSeason(): Promise<SeasonCurrent> {
   const s = await crmGet<SeasonCurrent>("/season/current");
   if (!s) throw new Error("CRM has no season");
   return s;
+}
+
+// The pack and the minimum for texts: the CRM's, or the usual ones in the static shell and while the CRM is out of reach
+export type Terms = { pack: number; min: number };
+export const TERMS: Terms = { pack: 30, min: 120 };
+export async function terms(): Promise<Terms> {
+  try {
+    const s = await getSeason();
+    return { pack: s.season.packSize, min: s.season.minStems };
+  } catch {
+    return TERMS;
+  }
 }
 
 // For pages: never at build time (the CRM isn't reachable there), so callers sit inside <Suspense>
