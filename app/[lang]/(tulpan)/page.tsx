@@ -28,14 +28,11 @@ export async function generateMetadata() {
   return pageMeta("/", t.meta.site, t.meta.siteDesc);
 }
 
-// data-home: the layout's «← На главную» hides itself on this page
 export default function Home() {
   return (
-    <div data-home>
-      <Suspense fallback={null}>
-        <HomeBody />
-      </Suspense>
-    </div>
+    <Suspense fallback={null}>
+      <HomeBody />
+    </Suspense>
   );
 }
 
