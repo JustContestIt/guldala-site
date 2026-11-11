@@ -1,5 +1,5 @@
 import { expect, it } from "vitest";
-import { formatPhone, isBin, normalizePhone } from "./validate";
+import { formatPhone, isBin, isEmail, normalizePhone } from "./validate";
 
 it("normalizes Kazakhstan phone numbers", () => {
   expect(normalizePhone("+7 777 100 66 67")).toBe("+77771006667");
@@ -27,4 +27,9 @@ it("formats the phone field as it's typed or pasted", () => {
 it("checks BIN is 12 digits", () => {
   expect(isBin("123456789012")).toBe(true);
   expect(isBin("12345678901")).toBe(false);
+});
+
+it("checks an e-mail looks like one", () => {
+  expect(["zakaz@tulpan.org", "a.b+c@mail.kz"].every(isEmail)).toBe(true);
+  expect(["", "zakaz", "zakaz@tulpan", "a b@mail.kz", "@mail.kz"].some(isEmail)).toBe(false);
 });

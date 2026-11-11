@@ -15,5 +15,8 @@ export function formatPhone(raw: string) {
 
 export const isBin = (s: string) => /^\d{12}$/.test(s);
 
+// Enough to catch a typo; the mailbox itself is proven by the letter arriving
+export const isEmail = (s: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s) && s.length <= 200;
+
 // Free text from forms: trimmed and capped so a bot can't post a novel into Telegram
 export const text = (v: FormDataEntryValue | null, max = 200) => String(v ?? "").trim().slice(0, max);

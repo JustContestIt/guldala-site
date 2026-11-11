@@ -17,6 +17,8 @@ export type PublicOrder = {
   paid: number;
   prepaymentDue: number;
   invoice: { provider: "kaspi"; amount: number; expiresAt: string | null } | null;
+  // a booking (confirmed, no invoice): the order at every prepayment by the prices held until holdUntil; [] otherwise
+  options: { pct: PrepaymentPct; total: number; prepayment: number }[];
   pickup: { date: string; slot: string; method: "self" | "client_truck"; storage: boolean };
   events: { at: string; type: string }[]; // created / confirmed / invoice / paid / an order status
   asOf: string;

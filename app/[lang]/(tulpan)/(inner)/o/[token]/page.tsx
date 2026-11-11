@@ -9,6 +9,7 @@ import { waLink } from "@/content/site";
 import { getDict } from "@/lib/dict";
 import { tenge, time } from "@/lib/format";
 import { getOrder, type OrderStatus } from "@/lib/orders";
+import { Refresh } from "./Refresh";
 import { ShareButton } from "./ShareButton";
 
 export async function generateMetadata({ params }: PageProps<"/[lang]/o/[token]">): Promise<Metadata> {
@@ -37,6 +38,8 @@ async function Order({ params, searchParams }: Pick<PageProps<"/[lang]/o/[token]
   if (!order) notFound();
   const { t } = await getDict();
   const status = t.statuses[order.status];
+  // С9: the client chose to pay now; the Kaspi invoice waits for Tatiana's «Оплачено» (with the Kaspi API: for the callback)
+  const awaiting = order.status === "confirmed" && !!order.invoice;
   const daysLeft = order.holdUntil ? Math.max(0, Math.ceil((Date.parse(order.holdUntil) - Date.parse(order.asOf)) / 86_400_000)) : 0;
   const when = (iso: string) => `${t.dayMonth(iso)}, ${time(iso)}`;
   // an event is a step the site names, or an order status the CRM moved to
@@ -47,14 +50,29 @@ async function Order({ params, searchParams }: Pick<PageProps<"/[lang]/o/[token]
     <>
       <section className="rounded-3xl bg-surface p-6 sm:p-8">
         <p className="text-sm text-muted">{t.meta.order(order.orderNumber)}</p>
-        <h1 className="mt-1 text-3xl sm:text-4xl">{status.title}</h1>
-        <p className="mt-2">{status.next}</p>
+        {awaiting ? (
+          <>
+            <Refresh seconds={10} />
+            <h1 className="mt-1 flex items-start gap-3 text-3xl sm:text-4xl">
+              <span aria-hidden="true" className="mt-3 size-3 shrink-0 animate-pulse rounded-full bg-accent sm:mt-4" />
+              {t.order.awaitTitle}
+            </h1>
+            <p className="mt-2">{t.order.awaitText}</p>
+            <p className="mt-4 text-sm text-muted">{t.order.awaitAmount}</p>
+            <p className="font-display text-3xl font-extrabold tabular-nums">{tenge(order.invoice!.amount)}</p>
+          </>
+        ) : (
+          <>
+            <h1 className="mt-1 text-3xl sm:text-4xl">{status.title}</h1>
+            <p className="mt-2">{status.next}</p>
+          </>
+        )}
         {order.holdUntil && <p className="mt-4 font-semibold text-accent">{t.order.hold(order.holdUntil, daysLeft)}</p>}
       </section>
 
-      {isNew && (
+      {isNew && <ClearPicks />}
+      {isNew && order.status === "new" && (
         <section className={`mt-6 ${box}`}>
-          <ClearPicks />
           <h2 className="text-lg">{t.order.kaspiTitle}</h2>
           <ol className="mt-2 grid list-decimal gap-1 pl-5 text-sm">
             {t.order.kaspiSteps.map((x) => (
@@ -64,7 +82,19 @@ async function Order({ params, searchParams }: Pick<PageProps<"/[lang]/o/[token]
         </section>
       )}
 
-      {order.invoice && (
+      {order.status === "confirmed" && !order.invoice && order.holdUntil && order.options.length > 0 && (
+        <section className={`mt-6 ${box}`}>
+          <h2 className="text-lg">{t.order.optionsTitle(order.holdUntil)}</h2>
+          <ul className="mt-2 grid gap-1 text-sm tabular-nums">
+            {order.options.map((x) => (
+              <li key={x.pct}>{t.order.option(x.pct, tenge(x.prepayment), tenge(x.total))}</li>
+            ))}
+          </ul>
+          <p className="mt-2 text-sm text-muted">{t.order.optionsNote}</p>
+        </section>
+      )}
+
+      {order.invoice && !awaiting && (
         <section className={`mt-6 ${box}`}>
           <h2 className="text-lg">{t.order.payNow}</h2>
           <p className="mt-1 font-display text-3xl font-extrabold tabular-nums">{tenge(order.invoice.amount)}</p>
@@ -89,12 +119,15 @@ async function Order({ params, searchParams }: Pick<PageProps<"/[lang]/o/[token]
             </li>
           )}
         </ul>
-        <p className="mt-2 text-xs text-muted">{t.order.priceNote}</p>
+        <p className="mt-2 text-xs text-muted">{order.status === "new" || order.status === "expired" ? t.order.priceNoteNew : t.order.priceNote}</p>
         <dl className="mt-3 grid gap-2 border-t border-line pt-3 text-sm">
           <div className="flex justify-between gap-4"><dt>{t.order.total}</dt><dd className="font-semibold tabular-nums">{tenge(order.total)}</dd></div>
           <div className="flex justify-between gap-4"><dt>{t.order.paid}</dt><dd className="tabular-nums">{tenge(order.paid)}</dd></div>
-          <div className="flex justify-between gap-4"><dt>{t.order.prepay(order.prepaymentPct)}</dt><dd className="tabular-nums">{tenge(order.prepaymentDue)}</dd></div>
-          <div className="flex justify-between gap-4"><dt>{t.order.rest}</dt><dd className="tabular-nums">{tenge(order.total - order.prepaymentDue)}</dd></div>
+          {order.prepaymentDue > 0 && (
+            <div className="flex justify-between gap-4"><dt>{t.order.prepay(order.prepaymentPct)}</dt><dd className="tabular-nums">{tenge(order.prepaymentDue)}</dd></div>
+          )}
+          {/* what is left to pay at pickup once the prepayment still due is in */}
+          <div className="flex justify-between gap-4"><dt>{t.order.rest}</dt><dd className="tabular-nums">{tenge(Math.max(0, order.total - order.paid - order.prepaymentDue))}</dd></div>
         </dl>
       </section>
 

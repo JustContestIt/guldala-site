@@ -32,6 +32,7 @@ type Props = {
 export function Checkout({ lang, data, t, labels, catalogHref, client, prefillToken }: Props) {
   const picks = usePicks();
   const [pct, setPct] = useState<PrepaymentPct>(100);
+  const [payNow, setPayNow] = useState(true); // С9: prepayment now (Kaspi invoice) or a booking without it
   const [date, setDate] = useState("");
   const [slot, setSlot] = useState("");
   const [legal, setLegal] = useState<"ip" | "too" | "person">("ip");
@@ -67,6 +68,7 @@ export function Checkout({ lang, data, t, labels, catalogHref, client, prefillTo
     <form onSubmit={submit} noValidate data-checked={checked || undefined} className="mt-8 grid gap-8 lg:grid-cols-[1fr_22rem] lg:items-start">
       <input type="hidden" name="lang" value={lang} />
       <input type="hidden" name="pct" value={pct} />
+      <input type="hidden" name="pay" value={payNow ? "1" : ""} />
       <input type="hidden" name="picks" value={serializePicks(Object.fromEntries(chosen.map((v) => [v.slug, picks[v.slug]])))} />
       {prefillToken && <input type="hidden" name="c" value={prefillToken} />}
       <input type="text" name="website" tabIndex={-1} autoComplete="off" aria-hidden="true" className="hidden" />
@@ -117,6 +119,23 @@ export function Checkout({ lang, data, t, labels, catalogHref, client, prefillTo
 
         <fieldset className="rounded-2xl border border-line p-5">
           <legend className="px-1 text-lg font-semibold">{t.prepayTitle}</legend>
+          <div className="mt-2 grid gap-2 sm:grid-cols-2">
+            {[true, false].map((p) => (
+              <label
+                key={String(p)}
+                className={`grid cursor-pointer gap-1 rounded-xl border p-4 has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-accent/40 ${
+                  p === payNow ? "border-accent bg-mint" : "border-line hover:bg-mint"
+                }`}
+              >
+                <span className="flex items-center gap-2 font-semibold">
+                  <input type="radio" name="mode" checked={p === payNow} onChange={() => setPayNow(p)} className="size-5 accent-accent" />
+                  {p ? t.payTitle : t.bookTitle}
+                </span>
+                <span className="text-sm text-muted">{p ? t.payHint : t.bookHint}</span>
+              </label>
+            ))}
+          </div>
+          <p className="mt-4 text-sm font-medium">{payNow ? t.pctNow : t.pctLater}</p>
           <div className="mt-2 grid grid-cols-4 gap-2">
             {PREPAYMENTS.map((p) => (
               <label
@@ -170,6 +189,9 @@ export function Checkout({ lang, data, t, labels, catalogHref, client, prefillTo
           <Field label={t.phone} error={t.errors.phone}>
             <PhoneInput defaultValue={client?.phone} />
           </Field>
+          <Field label={t.email} hint={t.emailHint} error={t.errors.email} optional>
+            <input type="email" name="email" maxLength={200} pattern="[^\s@]+@[^\s@]+\.[^\s@]+" autoComplete="email" inputMode="email" className={inputCls} />
+          </Field>
           <fieldset className="grid gap-1.5 text-sm">
             <legend className="mb-1.5 font-medium">{t.legal}</legend>
             <div className="flex flex-wrap gap-x-4">
@@ -211,7 +233,7 @@ export function Checkout({ lang, data, t, labels, catalogHref, client, prefillTo
             <dd className="font-semibold tabular-nums">{tenge(q.total)}</dd>
           </div>
           <div className="flex items-baseline justify-between gap-3 border-t border-line pt-3">
-            <dt className="text-sm">{fmt(t.prepay, { pct })}</dt>
+            <dt className="text-sm">{fmt(payNow ? t.prepayNow : t.prepay, { pct })}</dt>
             <dd className="font-semibold tabular-nums">{tenge(q.prepayment)}</dd>
           </div>
           <div className="flex items-baseline justify-between gap-3 border-t border-line pt-3">
@@ -249,9 +271,9 @@ export function Checkout({ lang, data, t, labels, catalogHref, client, prefillTo
         ) : null}
 
         <button type="submit" disabled={blocked} className="mt-4 inline-flex min-h-12 w-full items-center justify-center rounded-xl bg-accent px-5 font-semibold text-white hover:bg-accent-dark disabled:cursor-not-allowed disabled:opacity-40">
-          {pending ? t.sending : t.submit}
+          {pending ? t.sending : payNow ? t.submitPay : t.submitBook}
         </button>
-        <p className="mt-3 text-xs text-muted">{t.noPay}</p>
+        <p className="mt-3 text-xs text-muted">{payNow ? t.payNote : t.noPay}</p>
       </aside>
     </form>
   );

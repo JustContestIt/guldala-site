@@ -58,11 +58,12 @@
 {
   items: { productId: string; packs: number }[];
   prepaymentPct: 40 | 60 | 80 | 100;
+  payNow: boolean;               // С9 (ревизия 09.11.2026): true — «Оплатить предоплату», false — «Бронь без предоплаты»
   pickupDate: string;            // YYYY-MM-DD внутри окна выдачи
   pickupSlot: string;            // "08:00–12:00" … "21:00–23:00" — в CRM уходит начало слота
   pickupMethod: "self" | "client_truck";
   storage: boolean;
-  client: { company: string; name: string; phone: string /* +7… */; legalType: "ip" | "too" | "person"; bin?: string; orgName?: string };
+  client: { company: string; name: string; phone: string /* +7… */; email?: string /* С10, необязательно */; legalType: "ip" | "too" | "person"; bin?: string; orgName?: string };
   comment: string;
   source: "site";
   prefillToken?: string;         // из ?c=TOKEN
@@ -72,7 +73,7 @@
 // → 429 { error } — лимит
 ```
 
-Сайт проверяет то же самое до отправки, CRM — окончательно, в транзакции с блокировкой остатков (спека §9). Заказ создаётся с `created_by = client`, `channel = site`, статус `confirmed` с бронью на `hold_days` или `new` от `check_threshold_amount`; при нехватке остатка заказ **не создаётся** (клиентская форма, спека §9). Сразу после создания клиенту уходит `booking` через провайдер сообщений, Татьяне — строка в лог CRM (`docker compose logs app | grep '\[site\]'`; Telegram — этап H).
+Сайт проверяет то же самое до отправки, CRM — окончательно, в транзакции с блокировкой остатков (спека §9). Заказ создаётся с `created_by = client`, `channel = site`; при нехватке остатка заказ **не создаётся** (клиентская форма, спека §9). Статус (ревизия 09.11.2026, С9): без `payNow` — `new`, Татьяна подтверждает бронь; с `payNow` — сразу `confirmed` с бронью на `hold_days`, ценой по сетке этого дня и платежом `pending` (счёт Kaspi на предоплату `prepaymentPct`). Счёт до этапа G Татьяна выставляет руками и закрывает кнопкой «Оплачено» → `prepaid`. `client.email` пишется в `clients.email` (пустой не стирает старый); письмо-подтверждение со ссылкой на `/o/{token}` уходит, когда заказ встаёт в `confirmed` и в `prepaid` (К23). Сразу после создания клиенту уходит `booking` через провайдер сообщений, Татьяне — строка в лог CRM (`docker compose logs app | grep '\[site\]'`; Telegram — этап H).
 
 ## GET /public/orders/{token}
 
@@ -89,6 +90,7 @@
   paid: number;
   prepaymentDue: number;
   invoice: { provider: "kaspi"; amount: number; expiresAt: null } | null;
+  options: { pct: 40 | 60 | 80 | 100; total: number; prepayment: number }[]; // confirmed без счёта: заказ при каждой предоплате по ценам брони; иначе []
   pickup: { date: string | null; slot: string; method: "self" | "client_truck"; storage: boolean };
   events: { at: string; type: string }[];   // по порядку, см. список типов выше
   asOf: string;                             // часы CRM — для «осталось N дней»
@@ -96,6 +98,8 @@
 ```
 
 Открытие страницы пересчитывает незафиксированный заказ по сетке на сегодня, как карточка в CRM. `404` — токена нет.
+
+Страница заказа (С9): `confirmed` с `invoice` — экран «Ожидаем оплату счёта в приложении Kaspi», страница обновляется каждые 10 с, пока заказ не станет `prepaid` («Предоплата получена, заказ оформлен»). `confirmed` без счёта — `options`: «Цены держим до `holdUntil`» и сумма при 40 / 60 / 80 / 100 %.
 
 ## GET /public/prefill/{token}
 

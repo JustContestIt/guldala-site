@@ -75,12 +75,13 @@ export function SectionTitle({ title, lead, dark }: { title: string; lead?: Reac
 
 // Label + control stacked; used by the calculator and Botanica forms.
 // error: the field is required (a star by the label); the text shows under it once a form with data-checked holds it empty or wrong
-export function Field({ label, children, hint, error }: { label: string; children: ReactNode; hint?: string; error?: string }) {
+// `error` marks the field required (*) unless it is `optional`: then it only explains a wrong value
+export function Field({ label, children, hint, error, optional }: { label: string; children: ReactNode; hint?: string; error?: string; optional?: boolean }) {
   return (
     <label className="group/field grid gap-1.5 text-sm">
       <span className="font-medium">
         {label}
-        {error && <span aria-hidden="true" className="text-up"> *</span>}
+        {error && !optional && <span aria-hidden="true" className="text-up"> *</span>}
       </span>
       {children}
       {hint && <span className="text-xs text-muted">{hint}</span>}
