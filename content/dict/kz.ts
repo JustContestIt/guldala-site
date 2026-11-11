@@ -114,7 +114,7 @@ export const kz: Dict = {
   from: (p: string) => p,
   fromPerStem: (p: string) => `данасы ${p}`,
 
-  requisites: "ЖК Горбачевская Тамара Александровна · ЖСН 471001400506",
+  requisites: "ЖК Горбачевская Тамара Александровна · ЖСН\u00a0471001400506",
 
   ph: {
     stem: "N см",

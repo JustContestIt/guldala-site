@@ -102,7 +102,7 @@ export const ru = {
   fromPerStem: (p: string) => `от ${p}/шт`,
 
   // the seller on invoices: an individual entrepreneur's ИИН plays the BIN's part (review 09.11.2026, С8)
-  requisites: "ИП Горбачевская Тамара Александровна · ИИН 471001400506",
+  requisites: "ИП Горбачевская Тамара Александровна · ИИН\u00a0471001400506",
 
   ph: {
     stem: "N см",
