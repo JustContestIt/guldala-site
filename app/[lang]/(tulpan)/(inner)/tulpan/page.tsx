@@ -39,16 +39,18 @@ async function TulpanBody() {
 
   return (
     <>
-      <section className="relative">
+      {/* photo and card share one grid cell: the photo is 56svh (420–600 px) but grows when the card and «← На главную» need more */}
+      <section data-hero className="grid">
         <Photo
           label={t.photos.tulpanHero}
           src={rows}
           priority
           sizes="(max-width: 639px) 200vw, 100vw"
-          className="h-[56svh] min-h-[420px] max-h-[600px] rounded-none [&_img]:object-[50%_60%] max-sm:[&_img]:origin-[50%_87%] max-sm:[&_img]:scale-200"
+          className="[grid-area:1/1] min-h-[clamp(420px,56svh,600px)] rounded-none [&_img]:object-[50%_60%] max-sm:[&_img]:origin-[50%_87%] max-sm:[&_img]:scale-200"
         />
-        <div className="absolute inset-x-0 bottom-0">
-          <div className="shell pb-8">
+        <div className="relative [grid-area:1/1] self-end">
+          {/* pt-20: room for «← На главную», which the inner layout lays over the photo */}
+          <div className="shell pt-20 pb-8">
             <div className="max-w-xl rounded-3xl bg-white p-6 sm:p-8">
               <p className="text-sm font-medium text-accent">
                 {t.tulpan.season(season.peakDate.slice(0, 4))} · {season.saleOpen ? t.tulpan.open : t.tulpan.closed}

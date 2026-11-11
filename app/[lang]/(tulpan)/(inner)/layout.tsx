@@ -7,7 +7,8 @@ export default async function InnerLayout({ children }: { children: React.ReactN
   const { t, href } = await getDict();
   return (
     <>
-      <div className="shell pt-4">
+      {/* a page that opens with a full-width photo (data-hero) gets the button on the photo, not on a white strip above it */}
+      <div className="shell pt-4 [&:has(+[data-hero])]:absolute [&:has(+[data-hero])]:inset-x-0 [&:has(+[data-hero])]:z-10">
         <Link href={href("/")} className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-line bg-white px-4 text-sm font-semibold hover:bg-surface">
           ← {t.nav.home}
         </Link>
