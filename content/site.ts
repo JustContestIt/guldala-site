@@ -4,9 +4,9 @@ export const SITE_URL = process.env.SITE_URL || "https://guldala.kz";
 export const BOTANICA_URL = SITE_URL.replace("://", "://botanica.");
 
 export const CONTACTS = {
-  // shortcut: Nikita's WhatsApp (the bot's number) for the project presentation, 26.10.2026; Tatiana's +7 777 100 66 67 / 77771006667 goes back for real clients
-  phone: "+7 775 111 44 47",
-  waPhone: "77751114447",
+  // Tatiana's WhatsApp (Nikita, 13.11.2026); Nikita's +7 775 111 44 47 was here for the presentation
+  phone: "+7 777 100 66 67",
+  waPhone: "77771006667",
   instagramTulpan: "guldala.tulpan.kz",
   instagramBotanica: "guldala.botanica",
 };
