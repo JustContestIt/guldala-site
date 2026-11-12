@@ -5,8 +5,9 @@
 **Ревизия 23.10.2026 (этап B)** — контракт сверен с моделью CRM, расхождения решены так (помечены **B**):
 
 - `productId` — uuid товара из CRM (не `red-classic`). `color` — поле `products.color` (`red`, `white`, `pink`, `yellow`, `purple`, `orange`), `type` — `products.tulip_type`.
-- `pickupMethod: "self"` ↔ `orders.pickup_method = self_pickup`; `pickupSlot` — строка слота сайта (`"08:00–12:00"`), CRM хранит **начало слота** в `orders.pickup_time` и в `GET /public/orders/{token}` отдаёт `pickup.slot` как `"08:00"`.
-- `prices.*.today` — цена за штуку при 100 % предоплаты на сегодня (Asia/Almaty). Если на сегодня правила нет (сезон закончился или ещё не начался) — последняя цена сетки, при пустой сетке `0`; `next` — следующий период сетки при 100 % или `null`.
+- `pickupMethod: "self"` ↔ `orders.pickup_method = self_pickup`, `"delivery"` ↔ `delivery` (Яндекс Доставка, стоимость по договорённости с продавцом; ревизия 12.11.2026, С3, вместо «своей машины»); `pickupSlot` — строка слота сайта (`"08:00–12:00"`), CRM хранит **начало слота** в `orders.pickup_time` и в `GET /public/orders/{token}` отдаёт `pickup.slot` как `"08:00"`.
+- `prices.*.today` — полная цена за штуку на сегодня (Asia/Almaty), при наименьшей предоплате `settings.prepayment_min_pct`: сайт пишет её без «от» (ревизия 12.11.2026, Ц3). Если на сегодня правила нет (сезон закончился или ещё не начался) — последняя цена сетки, при пустой сетке `0`; `next` — следующий период сетки или `null`.
+- `season.discount` — скидка за 100 % предоплату (ревизия 12.11.2026, Ц2): `pct` % с цены каждой штуки, если от дня цены до даты выдачи не меньше `minDays` дней; при любой другой предоплате или ближе к выдаче — цена сетки. Округление — до тенге за штуку, как в CRM (`lib/calc.ts` `prepayDiscountPct`, `discounted`). `pct = 0` — скидки нет.
 - `priceGrid` — для каждого правила `price_rules` и каждой точки 40 / 60 / 80 / 100, попадающей в полосу правила: `{ periodEnd: date_to, prepaymentPct, type, pricePerStem }`. На сайте период выбирается по `day <= periodEnd` (сетка должна быть без дыр с сегодняшнего дня).
 - `stock.status`: `many` при `available ≥ planned × stock_few_below_pct / 100` (настройка сезона, по умолчанию 30 %), `few` при `available > 0`, `none` при 0. `maxPacks = floor(available / pack_size)`; `available` — спека §9 (план + корректировки − брони − выдано), считается запросом, без кэша.
 - `season.id` — uuid сезона; `season.peakHoursFrom` — `settings.peak_hours_from`, может быть `""` (вечерних часов нет).
@@ -38,6 +39,7 @@
     peakHoursFrom: string;   // с этой даты выдача до 23:00, settings.peak_hours_from; "" = нет
     packSize: number;        // цветков в пачке, settings.pack_size (Склад, ревизия 09.11.2026): сайт считает и пишет пачку по нему
     minStems: number;        // минимальный заказ в штуках, settings.min_order_stems (в сумме по цветам)
+    discount: { pct: number; minDays: number }; // скидка за 100 % предоплату, settings.full_prepay_discount_pct / full_prepay_min_days
   };
   asOf: string;              // ISO, момент расчёта «сегодня»
   prices: {
@@ -61,9 +63,9 @@
   payNow: boolean;               // С9 (ревизия 09.11.2026): true — «Оплатить предоплату», false — «Бронь без предоплаты»
   pickupDate: string;            // YYYY-MM-DD внутри окна выдачи
   pickupSlot: string;            // "08:00–12:00" … "21:00–23:00" — в CRM уходит начало слота
-  pickupMethod: "self" | "client_truck";
+  pickupMethod: "self" | "delivery";
   storage: boolean;
-  client: { company: string; name: string; phone: string /* +7… */; email?: string /* С10, необязательно */; legalType: "ip" | "too" | "person"; bin?: string; orgName?: string };
+  client: { company: string; name: string; phone: string /* +7… */; email: string /* обязательно (ревизия 12.11.2026, П1): пустая → 400 «Укажите почту…» */; legalType: "ip" | "too" | "person"; bin?: string; orgName?: string };
   comment: string;
   source: "site";
   prefillToken?: string;         // из ?c=TOKEN
@@ -73,7 +75,7 @@
 // → 429 { error } — лимит
 ```
 
-Сайт проверяет то же самое до отправки, CRM — окончательно, в транзакции с блокировкой остатков (спека §9). Заказ создаётся с `created_by = client`, `channel = site`; при нехватке остатка заказ **не создаётся** (клиентская форма, спека §9). Статус (ревизия 09.11.2026, С9): без `payNow` — `new`, Татьяна подтверждает бронь; с `payNow` — сразу `confirmed` с бронью на `hold_days`, ценой по сетке этого дня и платежом `pending` (счёт Kaspi на предоплату `prepaymentPct`). Счёт до этапа G Татьяна выставляет руками и закрывает кнопкой «Оплачено» → `prepaid`. `client.email` пишется в `clients.email` (пустой не стирает старый); письмо-подтверждение со ссылкой на `/o/{token}` уходит, когда заказ встаёт в `confirmed` и в `prepaid` (К23). Сразу после создания клиенту уходит `booking` через провайдер сообщений, Татьяне — строка в лог CRM (`docker compose logs app | grep '\[site\]'`; Telegram — этап H).
+Сайт проверяет то же самое до отправки, CRM — окончательно, в транзакции с блокировкой остатков (спека §9). Заказ создаётся с `created_by = client`, `channel = site`; при нехватке остатка заказ **не создаётся** (клиентская форма, спека §9). Статус (ревизия 09.11.2026, С9): без `payNow` — `new`, Татьяна подтверждает бронь; с `payNow` — сразу `confirmed` с бронью на `hold_days`, ценой по сетке этого дня и платежом `pending` (счёт Kaspi на предоплату `prepaymentPct`). Счёт до этапа G Татьяна выставляет руками и закрывает кнопкой «Оплачено» → `prepaid`. `client.email` пишется в `clients.email` (пустой не стирает старый); письмо-подтверждение со ссылкой на `/o/{token}` и PDF во вложении уходит на заявку (`new`), когда заказ встаёт в `confirmed` и в `prepaid` (К23; ревизия 12.11.2026, П2–П3). Сразу после создания клиенту уходит `booking` через провайдер сообщений, Татьяне — строка в лог CRM (`docker compose logs app | grep '\[site\]'`; Telegram — этап H).
 
 ## GET /public/orders/{token}
 
@@ -83,6 +85,7 @@
   status: "new" | "confirmed" | "prepaid" | "ready" | "issued" | "expired" | "cancelled";
   holdUntil: string | null;      // только для confirmed
   prepaymentPct: number;
+  prepayOff: number;             // цены строк со скидкой этого % за 100 % предоплату (Ц4); 0 — без скидки
   items: { productId: string; color: string; type: string; packs: number; stems: number; pricePerStem: number; sum: number }[];
   storageFee: number;            // холодильник, уже в total; 0 — без хранения
   storageDays: number;
@@ -91,7 +94,7 @@
   prepaymentDue: number;
   invoice: { provider: "kaspi"; amount: number; expiresAt: null } | null;
   options: { pct: 40 | 60 | 80 | 100; total: number; prepayment: number }[]; // confirmed без счёта: заказ при каждой предоплате по ценам брони; иначе []
-  pickup: { date: string | null; slot: string; method: "self" | "client_truck"; storage: boolean };
+  pickup: { date: string | null; slot: string; method: "self" | "delivery"; storage: boolean };
   events: { at: string; type: string }[];   // по порядку, см. список типов выше
   asOf: string;                             // часы CRM — для «осталось N дней»
 }

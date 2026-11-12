@@ -10,7 +10,7 @@ import { OrderSteps } from "@/components/OrderSteps";
 import { Photo } from "@/components/Photo";
 import { WithTerms } from "@/components/Terms";
 import { ButtonLink, SectionTitle } from "@/components/ui";
-import { SHADE_HEX, SHADES, TULIP_TYPES } from "@/content/colors";
+import { SHADE_HEX, SHADES } from "@/content/colors";
 import { CONTACTS, instagramUrl, waLink } from "@/content/site";
 import { groupPhoto } from "@/content/variety-photos";
 import { VARIETIES } from "@/content/varieties";
@@ -232,11 +232,10 @@ async function HomeBody() {
 async function TodayPrice() {
   const { t } = await getDict();
   const s = await seasonOrNull();
-  const prices = s ? TULIP_TYPES.map((x) => s.prices[x].today).filter((p) => p > 0) : [];
-  if (!prices.length) return null;
+  if (!s || !s.prices.classic.today || !s.prices.double.today) return null;
   return (
     <p className="mt-4 rounded-xl bg-mint px-4 py-3 text-sm">
-      <b className="font-display text-lg text-accent-dark">{t.home.priceToday(tenge(Math.min(...prices)))}</b> {t.home.priceHint}
+      <b className="font-display text-lg text-accent-dark">{t.home.priceToday(tenge(s.prices.classic.today), tenge(s.prices.double.today))}</b> {t.home.priceHint}
     </p>
   );
 }

@@ -7,13 +7,13 @@ import { Icon } from "@/components/icons";
 import { OrderSteps } from "@/components/OrderSteps";
 import { Photo } from "@/components/Photo";
 import { ButtonLink, SectionTitle, StockBadge } from "@/components/ui";
-import { COLOR_HEX, TULIP_TYPES } from "@/content/colors";
+import { COLOR_HEX, TULIP_TYPES, type TulipType } from "@/content/colors";
 import { waLink } from "@/content/site";
 import { groupPhoto } from "@/content/variety-photos";
 import { shadesOf } from "@/content/varieties";
 import { getDict, pageMeta } from "@/lib/dict";
 import { tenge } from "@/lib/format";
-import { almatyDay, PREPAYMENTS, pricePerStem } from "@/lib/pricing";
+import { almatyDay, discounted, PREPAYMENTS, pricePerStem } from "@/lib/pricing";
 import { getSeason } from "@/lib/season";
 
 export async function generateMetadata() {
@@ -36,6 +36,13 @@ async function TulpanBody() {
   const today = almatyDay(new Date(asOf));
   const periods = [...new Set(priceGrid.map((r) => r.periodEnd))].sort();
   const currentPeriod = periods.find((end) => today <= end);
+  // one price for any prepayment, and the 100 % one with the season's discount (review 12.11.2026, Ц1–Ц2)
+  const off = season.discount?.pct ?? 0;
+  const base = (type: TulipType, end: string) => pricePerStem(priceGrid, type, PREPAYMENTS[0], end);
+  const discountedAt = (type: TulipType, end: string) => {
+    const p = base(type, end);
+    return p === null ? null : discounted(p, off);
+  };
 
   return (
     <>
@@ -73,12 +80,12 @@ async function TulpanBody() {
               {TULIP_TYPES.map((type) => (
                 <div key={type}>
                   <p className="text-sm text-muted">{t.types[type]}</p>
-                  <p className="mt-1 font-display text-3xl font-extrabold whitespace-nowrap sm:text-5xl">{t.from(tenge(prices[type].today))}</p>
+                  <p className="mt-1 font-display text-3xl font-extrabold whitespace-nowrap sm:text-5xl">{tenge(prices[type].today)}</p>
                   <p className="text-sm text-muted">{t.tulpan.perStem}</p>
                 </div>
               ))}
             </div>
-            <p className="mt-4 text-sm text-muted">{t.tulpan.priceNote}</p>
+            <p className="mt-4 text-sm text-muted">{t.tulpan.priceNote(season.discount.pct, season.discount.minDays)}</p>
             {prices.classic.next && prices.double.next && (
               <p className="mt-4 rounded-xl bg-up-bg px-4 py-3 text-sm text-up">
                 {t.tulpan.nextPrice(prices.classic.next.from, tenge(prices.classic.next.price), tenge(prices.double.next.price))}
@@ -101,18 +108,16 @@ async function TulpanBody() {
                   <thead className="text-muted">
                     <tr>
                       <th scope="col" className="py-2 text-left font-normal">{t.tulpan.gridOrder}</th>
-                      {PREPAYMENTS.map((p) => (
-                        <th key={p} scope="col" className="py-2 pr-2 font-normal">{p}&nbsp;%</th>
-                      ))}
+                      <th scope="col" className="py-2 pr-2 font-normal whitespace-nowrap">{t.tulpan.gridPrice}</th>
+                      {off > 0 && <th scope="col" className="py-2 pr-2 font-normal whitespace-nowrap">{t.tulpan.gridDiscount(off)}</th>}
                     </tr>
                   </thead>
                   <tbody>
                     {periods.map((end) => (
                       <tr key={end} className={`border-t border-line ${end === currentPeriod ? "bg-mint font-semibold" : ""}`}>
                         <th scope="row" className="py-2 pl-2 text-left font-normal">{t.tulpan.gridUntil(end)}</th>
-                        {PREPAYMENTS.map((p) => (
-                          <td key={p} className="py-2 pr-2">{pricePerStem(priceGrid, type, p, end)}</td>
-                        ))}
+                        <td className="py-2 pr-2">{base(type, end)}</td>
+                        {off > 0 && <td className="py-2 pr-2 text-accent-dark">{discountedAt(type, end)}</td>}
                       </tr>
                     ))}
                   </tbody>
@@ -139,7 +144,7 @@ async function TulpanBody() {
                 />
                 <span className="mt-3 block font-semibold group-hover:text-accent">{t.product(s.color, s.type)}</span>
                 <span className="mt-1 flex flex-wrap items-center gap-2 text-sm text-muted">
-                  <StockBadge status={s.status} t={t.stock} /> {t.fromPerStem(tenge(prices[s.type].today))}
+                  <StockBadge status={s.status} t={t.stock} /> {t.pricePerStem(tenge(prices[s.type].today))}
                 </span>
               </Link>
             </li>

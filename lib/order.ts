@@ -1,13 +1,15 @@
 import type { ColorId, TulipType } from "../content/colors";
-import { pricePerStem } from "./pricing";
+import { discounted, prepayDiscount, pricePerStem } from "./pricing";
 import type { PrepaymentPct, SeasonCurrent, StockItem } from "./season";
 
 export type OrderLine = { productId: string; packs: number };
 export type QuoteLine = OrderLine & { color: ColorId; type: TulipType; stems: number; pricePerStem: number; sum: number };
 
 export type Quote = {
-  lines: QuoteLine[];
+  lines: QuoteLine[]; // at the grid price
   stems: number;
+  subtotal: number; // the lines at the grid price
+  discount: { pct: number; amount: number }; // the 100 % prepayment discount, «Скидка 10 % за 100 % предоплату»
   total: number;
   prepayment: number;
   remainder: number;
@@ -24,6 +26,7 @@ export function quote(
   order: OrderLine[],
   pct: PrepaymentPct,
   day: string,
+  pickupDate: string | null = null, // the 100 % discount needs it; none yet, no discount
 ): Quote {
   const lines: QuoteLine[] = [];
   const overStock: string[] = [];
@@ -48,11 +51,16 @@ export function quote(
   }
 
   const stems = lines.reduce((a, l) => a + l.stems, 0);
-  const total = lines.reduce((a, l) => a + l.sum, 0);
+  const subtotal = lines.reduce((a, l) => a + l.sum, 0);
+  const off = prepayDiscount(season.season.discount, pct, day, pickupDate);
+  const saved = lines.reduce((a, l) => a + l.stems * (l.pricePerStem - discounted(l.pricePerStem, off)), 0);
+  const total = subtotal - saved;
   const prepayment = prepaymentAmount(total, pct);
   return {
     lines,
     stems,
+    subtotal,
+    discount: { pct: off, amount: saved },
     total,
     prepayment,
     remainder: total - prepayment,

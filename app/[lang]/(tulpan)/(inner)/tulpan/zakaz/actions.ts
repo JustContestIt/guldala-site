@@ -31,12 +31,12 @@ export async function submitOrder(_: OrderState, fd: FormData): Promise<OrderSta
   const { lines, sorts } = linesFromPicks(picks, VARIETIES, stock);
   const date = text(fd.get("date"), 10);
   const day = almatyDay(new Date(asOf));
-  const q = quote({ season, priceGrid, stock }, lines, pct, day);
+  const q = quote({ season, priceGrid, stock }, lines, pct, day, date);
   // The CRM sells colors; the varieties the client picked reach Tatiana as a wish
   const wishes = sorts.length ? `Сорта: ${sorts.map((x) => `${x.name} ${x.packs} пач.`).join(", ")}` : "";
   const comment = [wishes, text(fd.get("comment"), 1000)].filter(Boolean).join("\n");
   const slot = text(fd.get("slot"), 20);
-  const method = fd.get("method") === "client_truck" ? "client_truck" : "self";
+  const method = fd.get("method") === "delivery" ? "delivery" : "self"; // delivery: by Yandex, priced apart (review 12.11.2026, С3)
   const company = text(fd.get("company"));
   const name = text(fd.get("name"));
   const phone = normalizePhone(text(fd.get("phone"), 30));
@@ -56,7 +56,7 @@ export async function submitOrder(_: OrderState, fd: FormData): Promise<OrderSta
   if (!company && legal !== "person") errors.push("company");
   if (!name) errors.push("name");
   if (!phone) errors.push("phone");
-  if (email && !isEmail(email)) errors.push("email");
+  if (!isEmail(email)) errors.push("email"); // the confirmation goes there (review 12.11.2026, П1)
   if (legal === "too" && !isBin(bin)) errors.push("bin");
   if (legal === "too" && !org) errors.push("org");
   if (errors.length) return { errors, overStock: q.overStock };
@@ -65,9 +65,10 @@ export async function submitOrder(_: OrderState, fd: FormData): Promise<OrderSta
   const waText = [
     `Заявка с сайта${lang === "kz" ? " (KZ)" : ""}`,
     ...q.lines.map((l) => `${ru.product(l.color, l.type)}: ${l.packs} пач. × ${l.pricePerStem} ₸ = ${tenge(l.sum)}`),
+    q.discount.amount > 0 && `Скидка ${q.discount.pct} % за 100 % предоплату: −${tenge(q.discount.amount)}`,
     `Итого ${tenge(q.total)}, предоплата ${pct} % = ${tenge(q.prepayment)}, остаток ${tenge(q.remainder)}`,
     payNow ? "Хочу внести предоплату сейчас, жду счёт Kaspi" : "Бронь без предоплаты",
-    `Вывоз ${date} ${slot}, ${method === "self" ? "самовывоз" : "машина клиента"}`,
+    `Вывоз ${date} ${slot}, ${method === "self" ? "самовывоз" : "доставка"}`,
     [company, name, phone, email].filter(Boolean).join(", "),
     legal === "too" ? `ТОО «${org}», БИН ${bin}` : legal === "person" ? "Физлицо" : "ИП",
     comment,

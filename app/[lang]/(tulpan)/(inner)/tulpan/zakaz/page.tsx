@@ -39,6 +39,7 @@ async function Loader({ searchParams }: { searchParams: PageProps<"/[lang]/tulpa
       catalogHref={href("/tulpan/sorta")}
       client={prefill?.client}
       prefillToken={prefill ? c : undefined}
+      discount={season.discount?.pct ? { promo: t.discount.promo(season.discount.pct, season.discount.minDays), line: t.discount.line(season.discount.pct) } : null}
     />
   );
 }

@@ -26,10 +26,11 @@ type Props = {
   // from ?c=TOKEN (a WhatsApp link): contacts the CRM already knows
   client?: { company: string; name: string; phone: string };
   prefillToken?: string;
+  discount: { promo: string; line: string } | null; // the 100 % discount, worded on the server
 };
 
 // The order comes from the catalog (variety picks); here it is checked, priced and sent
-export function Checkout({ lang, data, t, labels, catalogHref, client, prefillToken }: Props) {
+export function Checkout({ lang, data, t, labels, catalogHref, client, prefillToken, discount }: Props) {
   const picks = usePicks();
   const [pickedPct, setPct] = useState<PrepaymentPct>(100);
   const [payNow, setPayNow] = useState(true); // С9: prepayment now (Kaspi invoice) or a booking without it
@@ -59,12 +60,10 @@ export function Checkout({ lang, data, t, labels, catalogHref, client, prefillTo
   const day = almatyDay(new Date(data.asOf));
   const lineOf = (v: (typeof VARIETIES)[number]) => data.stock.find((s) => s.color === v.color && s.type === v.type);
   const chosen = VARIETIES.filter((v) => picks[v.slug] && lineOf(v));
-  const q = quote(data, linesFromPicks(picks, chosen, data.stock).lines, pct, day);
+  const q = quote(data, linesFromPicks(picks, chosen, data.stock).lines, pct, day, date || null);
   const slots = slotsFor(data.season, date, day);
   const price = (type: "classic" | "double") => pricePerStem(data.priceGrid, type, pct, day);
   const blocked = pending || !q.lines.length || q.missingStems > 0 || q.closed || q.overStock.length > 0;
-  const classic = price("classic");
-  const double = price("double");
 
   return (
     <form onSubmit={submit} noValidate data-checked={checked || undefined} className="mt-8 grid gap-8 lg:grid-cols-[1fr_22rem] lg:items-start">
@@ -134,6 +133,8 @@ export function Checkout({ lang, data, t, labels, catalogHref, client, prefillTo
                   {p ? t.payTitle : t.bookTitle}
                 </span>
                 <span className="text-sm text-muted">{p ? t.payHint : t.bookHint}</span>
+                {/* the 100 % discount as an advert by «Предоплата сейчас» (review 12.11.2026, Ц4) */}
+                {p && discount && <span className="text-base font-bold text-accent">{discount.promo}</span>}
               </label>
             ))}
           </div>
@@ -153,9 +154,6 @@ export function Checkout({ lang, data, t, labels, catalogHref, client, prefillTo
                   </label>
                 ))}
               </div>
-              {classic !== null && double !== null && (
-                <p className="mt-3 text-sm text-muted">{fmt(t.prepayHint, { pct, classic: tenge(classic), double: tenge(double) })}</p>
-              )}
             </>
           )}
         </fieldset>
@@ -175,12 +173,13 @@ export function Checkout({ lang, data, t, labels, catalogHref, client, prefillTo
           </Field>
           <fieldset className="grid gap-2 text-sm sm:col-span-2">
             <legend className="mb-1.5 font-medium">{t.method}</legend>
-            {(["self", "client_truck"] as const).map((m) => (
+            {(["self", "delivery"] as const).map((m) => (
               <label key={m} className="flex min-h-11 items-center gap-3">
                 <input type="radio" name="method" value={m} defaultChecked={m === "self"} className="size-5 accent-accent" />
-                {m === "self" ? t.self : t.truck}
+                {m === "self" ? t.self : t.delivery}
               </label>
             ))}
+            <p className="text-xs text-muted">{t.deliveryNote}</p>
           </fieldset>
         </fieldset>
 
@@ -195,8 +194,8 @@ export function Checkout({ lang, data, t, labels, catalogHref, client, prefillTo
           <Field label={t.phone} error={t.errors.phone}>
             <PhoneInput defaultValue={client?.phone} />
           </Field>
-          <Field label={t.email} hint={t.emailHint} error={t.errors.email} optional>
-            <input type="email" name="email" maxLength={200} pattern="[^\s@]+@[^\s@]+\.[^\s@]+" autoComplete="email" inputMode="email" className={inputCls} />
+          <Field label={t.email} hint={t.emailHint} error={t.errors.email}>
+            <input type="email" name="email" required maxLength={200} pattern="[^\s@]+@[^\s@]+\.[^\s@]+" autoComplete="email" inputMode="email" className={inputCls} />
           </Field>
           <fieldset className="grid gap-1.5 text-sm">
             <legend className="mb-1.5 font-medium">{t.legal}</legend>
@@ -236,8 +235,14 @@ export function Checkout({ lang, data, t, labels, catalogHref, client, prefillTo
           </div>
           <div className="flex items-baseline justify-between gap-3 border-t border-line pt-3">
             <dt className="text-sm">{fmt(t.flowers, { n: q.stems })}</dt>
-            <dd className="font-semibold tabular-nums">{tenge(q.total)}</dd>
+            <dd className="font-semibold tabular-nums">{tenge(q.subtotal)}</dd>
           </div>
+          {q.discount.amount > 0 && (
+            <div className="flex items-baseline justify-between gap-3 border-t border-line pt-3 text-accent-dark">
+              <dt className="text-sm font-semibold">{discount?.line}</dt>
+              <dd className="font-semibold tabular-nums">−{tenge(q.discount.amount)}</dd>
+            </div>
+          )}
           {payNow && (
             <>
               <div className="flex items-baseline justify-between gap-3 border-t border-line pt-3">

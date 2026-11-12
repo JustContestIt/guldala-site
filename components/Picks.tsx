@@ -7,7 +7,7 @@ import { VARIETIES } from "@/content/varieties";
 import { tenge } from "@/lib/format";
 import { fmt } from "@/lib/i18n";
 import { linesFromPicks, quote, type Picks } from "@/lib/order";
-import { almatyDay } from "@/lib/pricing";
+import { almatyDay, PREPAYMENTS } from "@/lib/pricing";
 import type { SeasonCurrent } from "@/lib/season";
 
 // The order a visitor assembles in the catalog (variety slug → packs), kept in localStorage across pages and visits
@@ -149,13 +149,14 @@ export function OrderBar({ data, href, token, t }: { data: Pick<SeasonCurrent, "
   }, [token]);
   const { lines } = linesFromPicks(picks, VARIETIES, data.stock);
   if (!lines.length) return null;
-  const q = quote(data, lines, 100, almatyDay(new Date(data.asOf)));
+  // the full price, no «от»: the 100 % discount shows at the checkout once the date allows it (review 12.11.2026, Ц3)
+  const q = quote(data, lines, PREPAYMENTS[0], almatyDay(new Date(data.asOf)));
   return (
     <div data-order-bar className="fixed inset-x-0 bottom-0 z-20 border-t border-line bg-white/95 pb-[env(safe-area-inset-bottom)] backdrop-blur">
       <div className="shell flex items-center gap-3 py-3">
         <div className="min-w-0 flex-1 text-sm">
           <p className="font-semibold">{fmt(t.packs, { n: q.stems / data.season.packSize, stems: q.stems })}</p>
-          <p className={q.missingStems ? "text-warn" : "text-muted"}>{q.missingStems ? fmt(t.toMin, { n: q.missingStems, min: data.season.minStems }) : fmt(t.from, { sum: tenge(q.total) })}</p>
+          <p className={q.missingStems ? "text-warn" : "text-muted"}>{q.missingStems ? fmt(t.toMin, { n: q.missingStems, min: data.season.minStems }) : fmt(t.sum, { sum: tenge(q.total) })}</p>
         </div>
         {/* at most ~half the bar: «Оформить бронь / заказ» is long, in Kazakh longer still, so it wraps instead of squeezing the count */}
         <Link href={href} className="inline-flex min-h-11 max-w-[62%] items-center justify-center rounded-xl bg-accent px-4 py-1.5 text-center text-sm leading-tight font-semibold text-white hover:bg-accent-dark">

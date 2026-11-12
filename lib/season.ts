@@ -4,6 +4,7 @@ import type { ColorId, TulipType } from "../content/colors";
 import { crmGet } from "./crm";
 
 export type PrepaymentPct = 40 | 60 | 80 | 100;
+export type PrepayDiscount = { pct: number; minDays: number };
 export type StockStatus = "many" | "few" | "none";
 
 export type PriceRow = {
@@ -33,6 +34,7 @@ export type SeasonCurrent = {
     peakHoursFrom: string; // "" = no evening hours in this season
     packSize: number; // flowers in a pack: the CRM's Склад setting (review 09.11.2026, К9)
     minStems: number; // the smallest order, in flowers, across colors
+    discount: PrepayDiscount; // 100 % prepayment at least minDays before pickup takes pct off (review 12.11.2026, Ц2)
   };
   asOf: string;
   prices: Record<TulipType, { today: number; next: { from: string; price: number } | null }>;

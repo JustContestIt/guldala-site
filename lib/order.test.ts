@@ -18,6 +18,14 @@ describe("order quote", () => {
     expect(q.remainder).toBe(7_920);
   });
 
+  it("100 % at least 30 days before pickup takes 10 % off every stem, as the CRM does (review 12.11.2026, Ц2)", () => {
+    const lines = [{ productId: ID.red, packs: 4 }]; // 120 × 90 ₸ at 100 % on DAY
+    expect(quote(season, lines, 100, DAY, "2026-11-20")).toMatchObject({ subtotal: 10_800, discount: { pct: 10, amount: 1_080 }, total: 9_720, prepayment: 9_720 });
+    expect(quote(season, lines, 100, DAY, "2026-11-19").discount).toEqual({ pct: 0, amount: 0 }); // 29 days
+    expect(quote(season, lines, 100, DAY).discount.pct).toBe(0); // no date yet
+    expect(quote(season, lines, 80, DAY, "2027-03-05")).toMatchObject({ discount: { pct: 0, amount: 0 }, total: 120 * 95 });
+  });
+
   it("flags lines above stock and colors that are out", () => {
     const q = quote(season, [{ productId: ID.pink, packs: 9 }, { productId: ID.orange, packs: 4 }, { productId: ID.red, packs: 4 }], 100, DAY);
     expect(q.overStock).toEqual([ID.pink, ID.orange]);

@@ -4,7 +4,7 @@ import { Suspense } from "react";
 import { Icon } from "@/components/icons";
 import { GreenhouseMap } from "@/components/GreenhouseMap";
 import { ClearPicks } from "@/components/Picks";
-import { ButtonLink, Ph } from "@/components/ui";
+import { ButtonLink } from "@/components/ui";
 import { waLink } from "@/content/site";
 import { getDict } from "@/lib/dict";
 import { tenge, time } from "@/lib/format";
@@ -119,6 +119,7 @@ async function Order({ params, searchParams }: Pick<PageProps<"/[lang]/o/[token]
             </li>
           )}
         </ul>
+        {!!order.prepayOff && <p className="mt-2 text-sm font-semibold text-accent-dark">{t.order.discounted(order.prepayOff)}</p>}
         <p className="mt-2 text-xs text-muted">{order.status === "new" || order.status === "expired" ? t.order.priceNoteNew : t.order.priceNote}</p>
         <dl className="mt-3 grid gap-2 border-t border-line pt-3 text-sm">
           <div className="flex justify-between gap-4"><dt>{t.order.total}</dt><dd className="font-semibold tabular-nums">{tenge(order.total)}</dd></div>
@@ -135,7 +136,7 @@ async function Order({ params, searchParams }: Pick<PageProps<"/[lang]/o/[token]
         <div>
           <h2 className="text-lg">{t.order.pickupTitle}</h2>
           <p className="mt-2 text-sm">{t.dayMonth(order.pickup.date)}, {order.pickup.slot}</p>
-          <p className="mt-1 text-sm">{order.pickup.method === "self" ? t.calc.self : t.calc.truck}</p>
+          <p className="mt-1 text-sm">{order.pickup.method === "delivery" ? t.order.delivery : t.calc.self}</p>
           {order.pickup.storage && <p className="mt-1 text-sm">{t.order.storage}</p>}
         </div>
         <GreenhouseMap />
@@ -145,7 +146,6 @@ async function Order({ params, searchParams }: Pick<PageProps<"/[lang]/o/[token]
         <h2 className="text-lg">{t.order.docsTitle}</h2>
         <ul className="mt-2 grid gap-1 text-sm">
           <li>{t.order.docInvoice}</li>
-          <li>{t.order.docContract}: <Ph>{t.ph.contract}</Ph></li>
         </ul>
       </section>
 

@@ -13,7 +13,8 @@ const STOCK: Record<StockStatus, string> = {
 
 export function StockBadge({ status, t }: { status: StockStatus; t: Dict["stock"] }) {
   return (
-    <span className={`inline-flex rounded-full px-3 py-1 text-sm font-medium ${STOCK[status]}`}>
+    // a size up: «В наличии: много / мало» has to read at a glance in the catalog (review 12.11.2026, С4)
+    <span className={`inline-flex rounded-full px-3.5 py-1.5 text-base font-semibold ${STOCK[status]}`}>
       {t.label}: {t[status]}
     </span>
   );
