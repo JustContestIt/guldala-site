@@ -235,7 +235,8 @@ async function TodayPrice() {
   if (!s || !s.prices.classic.today || !s.prices.double.today) return null;
   return (
     <p className="mt-4 rounded-xl bg-mint px-4 py-3 text-sm">
-      <b className="font-display text-lg text-accent-dark">{t.home.priceToday(tenge(s.prices.classic.today), tenge(s.prices.double.today))}</b> {t.home.priceHint}
+      <b className="block font-display text-lg text-accent-dark">{t.home.priceToday(tenge(s.prices.classic.today), tenge(s.prices.double.today))}</b>
+      <span className="mt-1 block">{t.home.priceHint}</span>
     </p>
   );
 }

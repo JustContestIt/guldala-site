@@ -10,6 +10,7 @@ import { getDict } from "@/lib/dict";
 import { tenge, time } from "@/lib/format";
 import { getOrder, type OrderStatus } from "@/lib/orders";
 import { Refresh } from "./Refresh";
+import { SentNotice } from "./SentNotice";
 import { ShareButton } from "./ShareButton";
 
 export async function generateMetadata({ params }: PageProps<"/[lang]/o/[token]">): Promise<Metadata> {
@@ -71,6 +72,7 @@ async function Order({ params, searchParams }: Pick<PageProps<"/[lang]/o/[token]
       </section>
 
       {isNew && <ClearPicks />}
+      {isNew && <SentNotice title={t.order.sentTitle} text={t.order.sentText} ok={t.order.sentOk} />}
       {isNew && order.status === "new" && (
         <section className={`mt-6 ${box}`}>
           <h2 className="text-lg">{t.order.kaspiTitle}</h2>

@@ -60,7 +60,8 @@ export function Checkout({ lang, data, t, labels, catalogHref, client, prefillTo
   const day = almatyDay(new Date(data.asOf));
   const lineOf = (v: (typeof VARIETIES)[number]) => data.stock.find((s) => s.color === v.color && s.type === v.type);
   const chosen = VARIETIES.filter((v) => picks[v.slug] && lineOf(v));
-  const q = quote(data, linesFromPicks(picks, chosen, data.stock).lines, pct, day, date || null);
+  // no date yet: the 100 % discount shows if the season's last pickup day still allows it; an early date takes it off
+  const q = quote(data, linesFromPicks(picks, chosen, data.stock).lines, pct, day, date || data.season.pickupTo);
   const slots = slotsFor(data.season, date, day);
   const price = (type: "classic" | "double") => pricePerStem(data.priceGrid, type, pct, day);
   const blocked = pending || !q.lines.length || q.missingStems > 0 || q.closed || q.overStock.length > 0;
